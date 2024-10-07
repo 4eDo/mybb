@@ -3,17 +3,17 @@ console.log("%c~~ Скрипт для автоматической провер�
 console.groupEnd();
 
 if(FORUM_URL && FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GAME_POST && INTERVAL_DAY_OFF_POST) {
-	$('body')
+	$('#result_4eDo')
 		.append(`
 		  <h2>Отсутствие любой активности более ${INTERVAL_ANY_POST} д.</h2>
 		  <ul id="usersWithoutAnyPosts"></ul>
 		`);
-	$('body')
+	$('#result_4eDo')
 		.append(`
 		  <h2>Отсутствие игровой активности более ${INTERVAL_GAME_POST} д.</h2>
 		  <ul id="usersWithoutGamePosts"></ul>
 		`);
-	$('body')
+	$('#result_4eDo')
 		.append(`
 		  <h2>Были сообщения в теме отсутствий за последние ${INTERVAL_DAY_OFF_POST} д.</h2>
 		  <ul id="usersWithDayOff"></ul>
