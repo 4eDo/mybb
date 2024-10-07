@@ -36,3 +36,4 @@
 <script src="https://4edo.github.io/mybb/auto_check_forum_and_gaming_activity/script.js"></script>
 ```
 3. Изменить тестовые значения на свои.
+4. В поле "Группы" указать "Администраторы" и "Модераторы"
