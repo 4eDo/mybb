@@ -76,9 +76,7 @@ if(FORUM_URL && FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST &&
 			if (topics.length === 0) {
 				return [];
 			}
-			const topicsToConsider = topics.filter(topic => stringDateToJsDate(topic.last_post_date) > Date.now() - $ {
-				INTERVAL_GAME_POST
-			}* 24 * 60 * 60 * 1000);
+			const topicsToConsider = topics.filter(topic => stringDateToJsDate(topic.last_post_date) > Date.now() - INTERVAL_GAME_POST * 24 * 60 * 60 * 1000);
 			const topicIds = topicsToConsider.map(topic => topic.id);
 
 			return getPostsInTopics(topicIds);
