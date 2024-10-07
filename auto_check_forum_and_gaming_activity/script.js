@@ -131,9 +131,7 @@ if(FORUM_URL && FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST &&
 
 				const uniqueUsers = new Set();
 				posts.forEach(post => {
-					if (stringDateToJsDate(post.posted) > Date.now() - $ {
-							INTERVAL_DAY_OFF_POST
-						}* 24 * 60 * 60 * 1000) {
+					if (stringDateToJsDate(post.posted) > Date.now() - INTERVAL_DAY_OFF_POST * 24 * 60 * 60 * 1000) {
 						const username = post.username;
 						const userExistsInList = [...usersWithoutAnyPostsList.children].some(li => li.textContent === `@${username}`);
 						const userExistsInList2 = [...usersWithoutGamePostsList.children].some(li => li.textContent === `@${username}`);
