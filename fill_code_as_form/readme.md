@@ -113,33 +113,165 @@ _templates_user
 ```
 
 ## 2. Добавление кнопки
-В разделе "Администрирование -> Формы -> Форма ответа" необходимо добавить следующий код:
+В разделе "Администрирование -> Формы -> Форма ответа" необходимо добавить следующий код.
+
+*Рекомендую убрать лишние отступы и переносы строк, чтобы код занимал меньше места в форме ответа и не мешался. Здесь они сохранены для наглядности.*
 ```html
 <!-- FILL CODE AS FORM (info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form#readme )-->
-<input type="button" class="button" id="templateBtn" onclick="showTemplateWindow()" value="Заполнение кодов" style="margin-top:-20px;"><div><div class="tmpl_overlay"></div><div class="tmpl_popup"><input type="button" id="tmpl_back-button" onclick="showTemplatesList()" value="Назад" style="display:none"> <input type="button" id="tmpl_close-button" onclick="hideTemplateWindow()" value="x"><div id="templatesList"></div><div id="targetForm" style="display:none"></div></div></div>
-
-<script type="text/javascript" src="https://4edo.github.io/mybb/fill_code_as_form/fillCodeAsForm.js"></script>
+	<input type="button" class="button" id="templateBtn" onclick="showTemplateWindow()" value="Заполнение кодов" style="margin-top:-20px;margin-left:10px;	display: none;">
+	<div>
+		<div class="tmpl_overlay"></div>
+		<div class="tmpl_popup">
+			<div id="tmpl_back-button" onclick="showTemplatesList()" style="display:none">Назад</div>
+			<div id="tmpl_close-button" onclick="hideTemplateWindow()" value="x">x</div>
+			<div id="templatesList"></div>
+			<div id="targetForm" style="display:none"></div>
+		</div>
+	</div>
+	
+	<script type="text/javascript" src="https://4edo.github.io/mybb/fill_code_as_form/fillCodeAsForm.js"></script>
 <!-- end FILL CODE AS FORM -->
 ```
 
-В список стилей внесите настройки для этого окна, чтобы дизайнеру не приходилось ползать по всему форуму, выискивая запихнутые абы куда теги стилей:
+В список стилей внесите настройки для этого окна, чтобы дизайнеру не приходилось ползать по всему форуму, выискивая запихнутые абы куда теги стилей.
+
+*Сперва поправьте дизайн под стиль вашего форума, а после прогоните через минификатор и включите в основной список стилей.*
 ```css
 /* styles for FILL CODE AS FORM  (info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form#readme )*/
-#templateBtn { border: 1px solid #000; text-align: center;}
-.tmpl_overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,.5); display: none; z-index: 1000; }
-.tmpl_popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); justify-content: space-evenly; padding: 15px; background: url(http://forumstatic.ru/files/001b/d8/2c/82987.jpg) no-repeat center; height: 380px; width: 650px; overflow: auto; display: none; z-index: 1001; }
-#tmpl_close-button { position: absolute; cursor: pointer; top: 10px; right: 10px; font-size: 23px; color: #b45540!important; font-weight: 700; text-decoration: none;}
-#tmpl_back-button,#tmpl_get-code-button { display: inline-block; position: relative; top: 1px; width: 127px; cursor: pointer; padding: 5px 8px 5px 8px; background: #313131; text-align: center; font-family: Manrope; font-size: 10px; letter-spacing: .6px; text-transform: lowercase; font-weight: 700; color: #e8e8e8!important; }
-#tmpl_get-code-button { background-color: #b45540!important; }
-#targetForm table { width: 100%; border-collapse: collapse; flex-grow: 1; }
-#targetForm td { padding: 5px; vertical-align: top; }
-#targetForm td:first-child { text-align: right; padding-right: 10px;}
-#targetForm td:first-child label { font-weight: 700;}
-#targetForm td:first-child div { font-style: italic; }
-#targetForm input, #targetForm select, #targetForm textarea { width: 260px; background: #e1e1e1 !important; color: black !important; text-transform: none !important; color: black !important;}
-#targetForm,#templatesList { height: 350px; display: flex; flex-direction: column; }
-#templateFormName { align-self: center; font-size: large; padding: 2px; }
-.tmpl_template { margin-bottom: 10px!important; margin-top: 10px!important; color: #000; text-align: justify; background: #c6c6c6; border: 1px solid #757573; padding: 8px; font-size: 11px; font-family: Manrope; letter-spacing: .6px; text-transform: lowercase; cursor: pointer; }
+#templateBtn {
+	border: 1px solid #000;
+	width: 150px;
+	text-align: center;
+}
+
+.tmpl_overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: none;
+	z-index: 1000;
+}
+
+.tmpl_popup {
+	position: absolute;
+	top: 0px;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	justify-content: space-evenly;
+	padding: 15px;
+	/*background: url(ссыль) no-repeat center;*/
+	background-color: #f7f7f7;
+	padding: 15px;
+	height: 500px;
+	width: 650px;
+	overflow: auto;
+	display: none;
+	z-index: 1001;
+	color: #000 !important;
+}
+
+#tmpl_close-button {
+	position: absolute;
+	cursor: pointer;
+	top: 0px;
+	right: 5px;
+	font-size: 23px;
+	color: #000 !important;
+	font-weight: 700;
+	text-decoration: none;
+	border: 0px !important;
+}
+
+#tmpl_back-button,
+#tmpl_get-code-button {
+	display: inline-block;
+	position: relative;
+	top: 1px;
+	width: 127px;
+	cursor: pointer;
+	padding: 5px 8px 5px 8px;
+	background: #1474C3 !important;
+	color: #ffffff !important;
+	text-align: center;
+	font-family: 'Arial';
+	font-size: 10px;
+	letter-spacing: 0.6px;
+	text-transform: lowercase;
+}
+
+#tmpl_back-button:hover,
+#tmpl_get-code-button:hover,
+#tmpl_get-code-button {
+	background-color: #1474C3 !important;
+}
+
+#tmpl_get-code-button:hover {
+	background-color: #1474C3 !important;
+}
+
+#targetForm table {
+	width: 100%;
+	border-collapse: collapse;
+	flex-grow: 1;
+}
+
+#targetForm td {
+	padding: 5px;
+	vertical-align: top;
+}
+
+#targetForm td:first-child {
+	text-align: right;
+	padding-right: 10px;
+}
+
+#targetForm td:first-child label {
+	font-weight: 700;
+}
+
+#targetForm td:first-child div {
+	font-style: italic;
+}
+
+#targetForm input,
+#targetForm select,
+#targetForm textarea {
+	width: 290px;
+	color: #000000 !important;
+}
+
+#targetForm,
+#templatesList {
+	height: 450px;
+	display: flex;
+	margin-top: 10px;
+	flex-direction: column;
+}
+
+#templateFormName {
+	align-self: center;
+	font-size: large;
+	padding: 2px;
+}
+
+.tmpl_template {
+	margin-bottom: 10px !important;
+	margin-top: 10px !important;
+	font-size: 10px;
+	color: #000;
+	text-align: justify;
+	background: #E1EDF7;
+	border: 1px solid #000;
+	padding: 8px;
+	font-size: 11px;
+	font-family: Manrope;
+	letter-spacing: 0.6px;
+	text-transform: lowercase;
+	cursor: pointer;
+}
 /* END styles for FILL CODE AS FORM*/
 ```
 
