@@ -17,12 +17,14 @@ const popup = document.querySelector('.tmpl_popup');
 const navlinks = document.getElementById('pun-navlinks');
 
 function showTemplateWindow() {
+	closePopupButton.style.display = 'block';
 	overlay.style.display = 'block';
 	popup.style.display = 'block';
 	navlinks.style.display = 'none';
 }
 
 function hideTemplateWindow() {
+	closePopupButton.style.display = 'none';
 	overlay.style.display = 'none';
 	popup.style.display = 'none';
 	navlinks.style.display = 'block';
