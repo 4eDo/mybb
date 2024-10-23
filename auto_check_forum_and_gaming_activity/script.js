@@ -1,5 +1,6 @@
-console.group("Script Info");
+console.group("4eDo script auto_check_forum_and_gaming_activity ");
 console.log("%c~~ Скрипт для автоматической проверки отсутствия игровой активности. %c https://github.com/4eDo %c ~~", "font-weight: bold;", "font-weight: bold;");
+console.log("More info: https://github.com/4eDo/mybb/tree/main/auto_check_forum_and_gaming_activity# ");
 console.groupEnd();
 
 if(FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GAME_POST && INTERVAL_DAY_OFF_POST) {
