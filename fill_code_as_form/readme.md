@@ -127,7 +127,7 @@ _templates_user
 		<div class="tmpl_overlay"></div>
 		<div class="tmpl_popup">
 			<div id="tmpl_back-button" onclick="showTemplatesList()" style="display:none">Назад</div>
-			<div id="tmpl_close-button" onclick="hideTemplateWindow()" value="x">x</div>
+			<div id="tmpl_close-button" onclick="hideTemplateWindow()" style="display:none">x</div>
 			<div id="templatesList"></div>
 			<div id="targetForm" style="display:none"></div>
 		</div>
