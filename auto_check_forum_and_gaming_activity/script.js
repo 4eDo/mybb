@@ -1,5 +1,5 @@
 console.group("4eDo script auto_check_forum_and_gaming_activity ");
-console.log("%c~~ Скрипт для автоматической проверки отсутствия игровой активности. %c https://github.com/4eDo %c ~~", "font-weight: bold;", "font-weight: bold;");
+console.log("%c~~ Скрипт для автоматической проверки отсутствия игровой активности. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/auto_check_forum_and_gaming_activity# ");
 console.groupEnd();
 
