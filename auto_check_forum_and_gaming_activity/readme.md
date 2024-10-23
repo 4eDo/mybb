@@ -8,6 +8,7 @@
 1. Создать страницу ("Администрирование -> Страницы")
 2. Добавить код:
 ``` html
+<!-- Check forum and gaming activity (info: https://github.com/4eDo/mybb/tree/main/auto_check_forum_and_gaming_activity#readme ) -->
 <div id="result_4eDo"></div>
 <script>
 	/** Идентификаторы форумов, где могут быть игровые посты */
