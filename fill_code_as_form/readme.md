@@ -25,7 +25,6 @@ _templates_user
 		<div class="tmpl_name">Тестовый шаблон</div>
 
 		<div class="tmpl_forum_ids">all</div>
-![form_example](https://github.com/user-attachments/assets/09e220a1-6e9f-4690-b825-09a474194587)
 
 		<div class="tmpl_topic_ids">all</div>
 
