@@ -2,7 +2,7 @@ console.group("Script Info");
 console.log("%c~~ Скрипт для автоматической проверки отсутствия игровой активности. %c https://github.com/4eDo %c ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
-if(FORUM_URL && FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GAME_POST && INTERVAL_DAY_OFF_POST) {
+if(FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GAME_POST && INTERVAL_DAY_OFF_POST) {
 	$('#result_4eDo')
 		.append(`
 		  <h2>Отсутствие любой активности более ${INTERVAL_ANY_POST} д.</h2>
@@ -22,7 +22,7 @@ if(FORUM_URL && FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST &&
 	const usersWithoutGamePostsList = document.getElementById('usersWithoutGamePosts');
 	const usersWithDayOffList = document.getElementById('usersWithDayOff');
 
-	const mybb = new MybbSDK(FORUM_URL, {
+	const mybb = new MybbSDK(window.location.origin + "/", {
 		format: "json",
 		charset: "utf-8"
 	});
