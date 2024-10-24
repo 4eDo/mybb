@@ -125,9 +125,9 @@ _templates_user
 	<input type="button" class="button" id="templateBtn" onclick="showTemplateWindow()" value="Заполнение кодов" style="margin-top:-20px;margin-left:10px;	display: none;">
 	<div>
 		<div class="tmpl_overlay"></div>
-		<div class="tmpl_popup">
+		<div class="tmpl_popup" style="display:none">
 			<div id="tmpl_back-button" onclick="showTemplatesList()" style="display:none">Назад</div>
-			<div id="tmpl_close-button" onclick="hideTemplateWindow()" style="display:none">x</div>
+			<div id="tmpl_close-button" onclick="hideTemplateWindow()">x</div>
 			<div id="templatesList"></div>
 			<div id="targetForm" style="display:none"></div>
 		</div>
