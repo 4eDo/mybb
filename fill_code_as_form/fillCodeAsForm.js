@@ -10,21 +10,17 @@ var currentTopic = $get.id;
 
 var userTemplateList = [];
 
-const openPopupButton = document.getElementById('templateBtn');
-const closePopupButton = document.getElementById('tmpl_close-button');
 const overlay = document.querySelector('.tmpl_overlay');
 const popup = document.querySelector('.tmpl_popup');
 const navlinks = document.getElementById('pun-navlinks');
 
 function showTemplateWindow() {
-	closePopupButton.style.display = 'block';
 	overlay.style.display = 'block';
 	popup.style.display = 'block';
 	navlinks.style.display = 'none';
 }
 
 function hideTemplateWindow() {
-	closePopupButton.style.display = 'none';
 	overlay.style.display = 'none';
 	popup.style.display = 'none';
 	navlinks.style.display = 'block';
