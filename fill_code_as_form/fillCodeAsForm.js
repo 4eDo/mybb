@@ -190,9 +190,9 @@ function fillCode(id) {
 				}
 			}
 			if(inputValue == "none") {
-				code = code.replace(placeholder, "");
+				code = code.replaceAll(placeholder, "");
 			} else {
-				code = code.replace(placeholder, inputValue);
+				code = code.replaceAll(placeholder, inputValue);
 			}	
 		}
 	});
