@@ -99,7 +99,7 @@ if (FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GA
 					.catch(error => {
 						console.error('Ошибка при получении топиков:', error);
 						const liErr = document.createElement('li');
-						liErr.textContent = `<b>Ошибка при получении топиков:</b> ${error}`;
+						liErr.innerHTML  = `<b>Ошибка при получении топиков:</b> ${error}`;
 						errorList.appendChild(liErr);
 						return allTopics; // Возвращаем все полученные топики даже в случае ошибки
 					});
@@ -144,7 +144,7 @@ if (FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GA
 					.catch(error => {
 						console.error('Ошибка при получении постов:', error);
 						const liErr = document.createElement('li');
-						liErr.textContent = `<b>Ошибка при получении постов из топиков ${chunk}:</b> ${error}`;
+						liErr.innerHTML  = `<b>Ошибка при получении постов из топиков ${chunk}:</b> ${error}`;
 						errorList.appendChild(liErr);
 					});
 			});
@@ -184,7 +184,7 @@ if (FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GA
 			.catch(error => {
 				console.error('Ошибка при получении постов в теме отсутствий:', error);
 				const liErr = document.createElement('li');
-				liErr.textContent = `<b>Ошибка при получении постов в теме отсутствий:</b> ${error}`;
+				liErr.innerHTML  = `<b>Ошибка при получении постов в теме отсутствий:</b> ${error}`;
 				errorList.appendChild(liErr);
 			});
 	}
