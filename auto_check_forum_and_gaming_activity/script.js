@@ -144,7 +144,7 @@ if (FORUMS_WITH_POSTS && TOPICS_WITH_DAY_OFF && INTERVAL_ANY_POST && INTERVAL_GA
 					.catch(error => {
 						console.error('Ошибка при получении постов:', error);
 						const liErr = document.createElement('li');
-						liErr.textContent = `<b>Ошибка при получении постов:</b> ${error}`;
+						liErr.textContent = `<b>Ошибка при получении постов из топиков ${chunk}:</b> ${error}`;
 						errorList.appendChild(liErr);
 					});
 			});
