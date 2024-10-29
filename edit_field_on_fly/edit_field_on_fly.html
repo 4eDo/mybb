@@ -96,7 +96,7 @@
                 let targetValue = parseInt(targetInput.value) || 0;
                 const oldValue = targetValue;
     
-                targetValue += action*parseInt(count);
+                targetValue += parseFloat(action)*parseInt(count);
     
                 targetInput.value = targetValue;
     
