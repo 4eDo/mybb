@@ -39,8 +39,8 @@
                 });
     
             $selType.append('<option value="0">Не выбрано</option>')
-                .append('<option value="add">начисление</option>')
-                .append('<option value="subtract">списание</option>');
+                .append('<option value="1">начисление</option>')
+                .append('<option value="-1">списание</option>');
     
             const $labelType = $('<p>Тип операции: </p>').hide().append($selType);
             const $inputCount = $('<input type="number" min="0" />')
@@ -96,11 +96,7 @@
                 let targetValue = parseInt(targetInput.value) || 0;
                 const oldValue = targetValue;
     
-                if (action === 'add') {
-                    targetValue += parseInt(count);
-                } else if (action === 'subtract') {
-                    targetValue -= parseInt(count);
-                }
+                targetValue += action*parseInt(count);
     
                 targetInput.value = targetValue;
     
@@ -111,7 +107,7 @@
                         <table class="editOnFly_success" border="1" style="margin-top: 10px;">
                             <tr>
                                 <td>Тип операции:</td>
-                                <td>${action === 'add' ? 'начисление' : 'списание'}</td>
+                                <td>${action > 0 ? 'начисление' : 'списание'}</td>
                             </tr>
                             <tr>
                                 <td>Количество:</td>
