@@ -1,147 +1,147 @@
-<script id="efof">
-    const FIELD_ID_FOR_EDIT = "fld4";
-    const ADD_CACHE_TEXT = "Изменение баланса";
-    const COLOR_INPUT_TEXT = "color: #000000 !important";
-    const ALLOWED_TOPICS = ['1']; // С кавычками
-    const ALLOWED_GROUPS = [1]; // БЕЗ кавычек
+<script id = "efof">
+	const FIELD_ID_FOR_EDIT = "fld4";
+const ADD_CACHE_TEXT = "Изменение баланса";
+const COLOR_INPUT_TEXT = "color: #000000 !important";
+const ALLOWED_TOPICS = ['1']; // С кавычками
+const ALLOWED_GROUPS = [1]; // БЕЗ кавычек
 
-    const OPERATIONS = [
-        ["Начисление", "1"],
-        ["Списание", "-1"],
-        ["От большой любви", "5"],
-        ["От маленькой любви", "0.1"],
-        ["От большой нелюбви", "-5"],
-        ["От маленькой нелюбви", "-0.1"],
-    ];
-	const ROUND = 2; // Если допускается дробный баланс, укажите кол-во знаков после запятой
-	// if 0 then 0.5555555 -> 0		1.999 -> 1
-	// if 1 then 0.5555555 -> 0.6
-	// if 2 then 0.5555555 -> 0.56
-	// if 3 then 0.5555555 -> 0.556
+const OPERATIONS = [
+	["Начисление", "1"],
+	["Списание", "-1"],
+	["От большой любви", "5"],
+	["От маленькой любви", "0.1"],
+	["От большой нелюбви", "-5"],
+	["От маленькой нелюбви", "-0.1"],
+];
+const ROUND = 2; // Если допускается дробный баланс, укажите кол-во знаков после запятой
+// if 0 then 0.5555555 -> 0		1.999 -> 1
+// if 1 then 0.5555555 -> 0.6
+// if 2 then 0.5555555 -> 0.56
+// if 3 then 0.5555555 -> 0.556
 
-    var currentTopic = $get.id;
-    $(document).ready(function() {
-    if(!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currentTopic)) {
-        $('#efof').remove();
-    } else {
-        console.group("4eDo script edit_field_on_fly ");
-        console.log("%c~~ Скрипт для быстрого начисления/списания средств. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-        console.groupEnd();
-        
-        const postRatings = $('.post-rating');
-        let inpId = 0;
-    
-        postRatings.each(function() {
-            const postRating = $(this);
-            const parentPost = postRating.closest('[data-user-id]');
-            const userId = parentPost.data('user-id');
-    
-            const $newDiv = $('<div></div>');
-    
-            const $button = $('<input type="button" />')
-                .addClass('edit_on_fly button preview')
-                .val(ADD_CACHE_TEXT)
-                .css('cursor', 'pointer')
-                .on('click', function() {
-                    $labelType.show();
-                });
-    
-            const $selType = $('<select></select>')
-                .attr('id', `select-type-${inpId}`)
-                .on('change', function() {
-                    $labelCount.toggle($selType.val() !== "0");
-                });
-    
-            $selType.append('<option value="0">Не выбрано</option>');
-            for(let opId = 0; opId < OPERATIONS.length; opId++) {
-                $selType.append(`<option value="${OPERATIONS[opId][1]}">${OPERATIONS[opId][0]} (${OPERATIONS[opId][1] > 0 ? '+' : ''}${OPERATIONS[opId][1]})</option>`);
-            }
-    
-            const $labelType = $('<p>Тип операции: </p>').hide().append($selType);
-            const $inputCount = $('<input type="number" min="0" step="1" />')
-                .attr('style', COLOR_INPUT_TEXT)
-                .attr('id', `input-count-${inpId}`)
-                .on('input', function() {
-                    $buttonGo.toggle($inputCount.val() > 0);
-                });
-    
-            const $labelCount = $('<p>Количество: </p>').hide().append($inputCount);
-    
-            const $buttonGo = $('<input type="button" />')
-                .addClass('edit_on_fly button submit')
-                .val("Выполнить")
-                .hide()
-                .css('cursor', 'pointer')
-                .on('click', function() {
-                    const action = $selType.val();
-                    const count = $inputCount.val();
-                    $buttonGo.prop('disabled', true);
-                    $labelType.css('opacity', '0.5').css('pointer-events', 'none');
-                    $labelCount.css('opacity', '0.5').css('pointer-events', 'none');
-                    $buttonGo.css('opacity', '0.5').css('pointer-events', 'none');
-                    getCurrentValueAndSetNew(action, count, userId, $inputCount, $buttonGo, $newDiv);
-                });
-    
-            $newDiv.append($button, $labelType, $labelCount, $buttonGo);
-            postRating.after($newDiv);
-    
-            inpId++;
-        });
+var currentTopic = $get.id;
+$(document).ready(function() {
+	if (!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currentTopic)) {
+		$('#efof').remove();
+	} else {
+		console.group("4eDo script edit_field_on_fly ");
+		console.log("%c~~ Скрипт для быстрого начисления/списания средств. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
+		console.groupEnd();
+
+		const postRatings = $('.post-rating');
+		let inpId = 0;
+
+		postRatings.each(function() {
+			const postRating = $(this);
+			const parentPost = postRating.closest('[data-user-id]');
+			const userId = parentPost.data('user-id');
+
+			const $newDiv = $('<div></div>');
+
+			const $button = $('<input type="button" />')
+				.addClass('edit_on_fly button preview')
+				.val(ADD_CACHE_TEXT)
+				.css('cursor', 'pointer')
+				.on('click', function() {
+					$labelType.show();
+				});
+
+			const $selType = $('<select></select>')
+				.attr('id', `select-type-${inpId}`)
+				.on('change', function() {
+					$labelCount.toggle($selType.val() !== "0");
+				});
+
+			$selType.append('<option value="0">Не выбрано</option>');
+			for (let opId = 0; opId < OPERATIONS.length; opId++) {
+				$selType.append(`<option value="${OPERATIONS[opId][1]}">${OPERATIONS[opId][0]} (${OPERATIONS[opId][1] > 0 ? '+' : ''}${OPERATIONS[opId][1]})</option>`);
+			}
+
+			const $labelType = $('<p>Тип операции: </p>').hide().append($selType);
+			const $inputCount = $('<input type="number" min="0" step="1" />')
+				.attr('style', COLOR_INPUT_TEXT)
+				.attr('id', `input-count-${inpId}`)
+				.on('input', function() {
+					$buttonGo.toggle($inputCount.val() > 0);
+				});
+
+			const $labelCount = $('<p>Количество: </p>').hide().append($inputCount);
+
+			const $buttonGo = $('<input type="button" />')
+				.addClass('edit_on_fly button submit')
+				.val("Выполнить")
+				.hide()
+				.css('cursor', 'pointer')
+				.on('click', function() {
+					const action = $selType.val();
+					const count = $inputCount.val();
+					$buttonGo.prop('disabled', true);
+					$labelType.css('opacity', '0.5').css('pointer-events', 'none');
+					$labelCount.css('opacity', '0.5').css('pointer-events', 'none');
+					$buttonGo.css('opacity', '0.5').css('pointer-events', 'none');
+					getCurrentValueAndSetNew(action, count, userId, $inputCount, $buttonGo, $newDiv);
+				});
+
+			$newDiv.append($button, $labelType, $labelCount, $buttonGo);
+			postRating.after($newDiv);
+
+			inpId++;
+		});
 
 		async function getCurrentValueAndSetNew(action, count, uid, $inputCount, $buttonGo, $container) {
 			try {
-					let response = await fetch(`/profile.php?section=fields&id=` + uid);
-					let buffer = await response.arrayBuffer();
-					let decoder = new TextDecoder('windows-1251');
-					let htmlText = decoder.decode(buffer);
-					// console.log("HTML Text:", htmlText);
-					let parser = new DOMParser();
-					let doc = parser.parseFromString(htmlText, 'text/html');
-					let form = doc.querySelector('#profile8');
-					if (form) {
-						const formData = new FormData(form); // Не принимает отправку только одного поля, нахально затирает остальные
-						let fldKey = `form[${FIELD_ID_FOR_EDIT}]`;
-						
-						for (const [key, value] of formData.entries()) {
-						  console.log(`${key}: ${value}`);
-							if( key == fldKey) {
-								targetInput = value;
-							}
-						}
+				let response = await fetch(`/profile.php?section=fields&id=` + uid);
+				let buffer = await response.arrayBuffer();
+				let decoder = new TextDecoder('windows-1251');
+				let htmlText = decoder.decode(buffer);
+				// console.log("HTML Text:", htmlText);
+				let parser = new DOMParser();
+				let doc = parser.parseFromString(htmlText, 'text/html');
+				let form = doc.querySelector('#profile8');
+				if (form) {
+					const formData = new FormData(form); // Не принимает отправку только одного поля, нахально затирает остальные
+					let fldKey = `form[${FIELD_ID_FOR_EDIT}]`;
 
-						const data = {};
-						for (const [key, value] of formData.entries()) {
-						  data[key] = value;
+					for (const [key, value] of formData.entries()) {
+						console.log(`${key}: ${value}`);
+						if (key == fldKey) {
+							targetInput = value;
 						}
-						
-						let targetValue = parseFloat(targetInput) || 0;
-		                const oldValue = targetValue;
-		    
-		                targetValue = roundToDecimals(targetValue + parseFloat(action)*parseInt(count));
-						data[fldKey] = targetValue; // Меняем значение в объекте
-						
-						const newFormData = new FormData();
-						for (const key in data) {
-						  newFormData.append(key,  encodeURIComponent(data[key], 'windows-1251'));
-						}
+					}
 
-						var url = document.URL;
-						history.replaceState(null, null, '/profile.php?section=fields&id=' + uid);
-						setTimeout(function() {
-						    history.replaceState(null, null, url);
-						});
-						fetch('https://gremlinquisitor.rusff.me/profile.php?section=fields&id=' + uid, {
-						    method: 'POST',
+					const data = {};
+					for (const [key, value] of formData.entries()) {
+						data[key] = value;
+					}
+
+					let targetValue = parseFloat(targetInput) || 0;
+					const oldValue = targetValue;
+
+					targetValue = roundToDecimals(targetValue + parseFloat(action) * parseInt(count));
+					data[fldKey] = targetValue;
+
+					const newFormData = new FormData();
+					for (const key in data) {
+						newFormData.append(key, data[key]);
+					}
+
+					var url = document.URL;
+					history.replaceState(null, null, '/profile.php?section=fields&id=' + uid);
+					setTimeout(function() {
+						history.replaceState(null, null, url);
+					});
+					fetch('/profile.php?section=fields&id=' + uid, {
+							method: 'POST',
+							body: serializeFormDataWithCustomSerialize2(newFormData),
 							headers: {
-							    'Content-Type': 'application/x-www-form-urlencoded; charset=windows-1251'
-							  },
-						    body: newFormData
-						  })
-						  .then(response => {
-						    console.log(response);
-						    
-		    
-		                    const $successMessage = $(`
+								'Content-Type': 'application/x-www-form-urlencoded'
+							}
+						})
+						.then(response => {
+							console.log(response);
+
+
+							const $successMessage = $(`
 		                        <table class="editOnFly_success" border="1" style="margin-top: 10px;">
 		                            <tr>
 		                                <td>Тип операции:</td>
@@ -162,106 +162,58 @@
 		                        </table>
 		                        <p>Новые значения будут видны после обновления страницы.</p>
 		                    `);
-		                    $container.append($successMessage);
-						  })
-						  .catch(error => {
-						    console.error('Ошибка отправки данных:', error);
-							  const $errorMessage = $(`<p class="editOnFly_error">Произошла ошибка. ${error}</p>`);
-                				$container.append($errorMessage);
-						  });
-						
-					} else {
-						console.error("Форма с id=profile8 не найдена.");
-							  const $errorMessage = $(`<p class="editOnFly_error">Форма с id=profile8 не найдена.</p>`);
-                				$container.append($errorMessage);
-					}
-				} catch (error) { console.error('Ошибка при получении или обработке данных:', error);
-							  const $errorMessage = $(`<p class="editOnFly_error">Произошла ошибка. ${error}</p>`);
-                				$container.append($errorMessage); }
-		}
-    
-    function sendDataThroughIframe(action, count, uid, $inputCount, $buttonGo, $container) {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        iframe.src = window.location.origin + '/profile.php?section=fields&id=' + uid;
-    
-        iframe.onload = function() {
-            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-    
-            if (!iframeDocument) {
-                const $errorMessage = $('<p class="editOnFly_error">Произошла ошибка.</p>');
-                $container.append($errorMessage);
-                document.body.removeChild(iframe);
-                return;
-            }
-    
-            const targetInput = iframeDocument.querySelector('input[name="form[' + FIELD_ID_FOR_EDIT + ']"]');
-            const submitButton = iframeDocument.querySelector('#profile8 > p > input');
-    
-            if (targetInput) {
-                let targetValue = parseFloat(targetInput.value) || 0;
-                const oldValue = targetValue;
-    
-                targetValue = roundToDecimals(targetValue + parseFloat(action)*parseInt(count));
-    
-                targetInput.value = targetValue;
-    
-                if (submitButton) {
-                    submitButton.click();
-    
-                    const $successMessage = $(`
-                        <table class="editOnFly_success" border="1" style="margin-top: 10px;">
-                            <tr>
-                                <td>Тип операции:</td>
-                                <td>${action > 0 ? 'начисление (+' : 'списание ('} ${parseFloat(action)})</td>
-                            </tr>
-                            <tr>
-                                <td>Количество:</td>
-                                <td>${count}</td>
-                            </tr>
-                            <tr>
-                                <td>Было:</td>
-                                <td>${oldValue}</td>
-                            </tr>
-                            <tr>
-                                <td>Стало:</td>
-                                <td>${targetValue}</td>
-                            </tr>
-                        </table>
-                        <p>Новые значения будут видны после обновления страницы.</p>
-                    `);
-                    $container.append($successMessage);
-                }
-            } else {
-                const $errorMessage = $('<p class="editOnFly_error">Произошла ошибка.</p>');
-                $container.append($errorMessage);
-                document.body.removeChild(iframe);
-                return;
-            }
-    
-            iframe.onload = function() {
-                document.body.removeChild(iframe);
-            };
-        };
-    
-        iframe.onerror = function() {
-            const $errorMessage = $('<p class="editOnFly_error">Произошла ошибка.</p>');
-            $container.append($errorMessage);
-            document.body.removeChild(iframe);
-        };
-    }
-       
-    }
-    });
+							$container.append($successMessage);
+						})
+						.catch(error => {
+							console.error('Ошибка отправки данных:', error);
+							const $errorMessage = $(`<p class="editOnFly_error">Произошла ошибка. ${error}</p>`);
+							$container.append($errorMessage);
+						});
 
-	function roundToDecimals(num) {
-		if (ROUND == 0) {
-			return parseInt(num);
-		} if (Number.isInteger(num)) {
-			return num;
-		} else {
-			return parseFloat(num.toFixed(ROUND));
+				} else {
+					console.error("Форма с id=profile8 не найдена.");
+					const $errorMessage = $(`<p class="editOnFly_error">Форма с id=profile8 не найдена.</p>`);
+					$container.append($errorMessage);
+				}
+			} catch (error) {
+				console.error('Ошибка при получении или обработке данных:', error);
+				const $errorMessage = $(`<p class="editOnFly_error">Произошла ошибка. ${error}</p>`);
+				$container.append($errorMessage);
+			}
 		}
 	}
-    </script>
+});
+
+function roundToDecimals(num) {
+	if (ROUND == 0) {
+		return parseInt(num);
+	}
+	if (Number.isInteger(num)) {
+		return num;
+	} else {
+		return parseFloat(num.toFixed(ROUND));
+	}
+}
+
+function serializeFormDataWithCustomSerialize2(formData) {
+	const dataArray = [];
+	for (const [key, value] of formData.entries()) {
+		dataArray.push({
+			name: key,
+			value: value
+		});
+	}
+
+	const fakeForm = $('<form>');
+	$.each(dataArray, function(index, item) {
+		fakeForm.append($('<input>').attr({
+			type: 'hidden',
+			name: item.name,
+			value: item.value
+		}));
+	});
+
+	return fakeForm.serialize2();
+}
+
+</script>
