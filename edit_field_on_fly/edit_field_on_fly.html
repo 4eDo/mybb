@@ -1,27 +1,42 @@
 <script id = "efof">
 	const FIELD_ID_FOR_EDIT = "fld4";
-const ADD_CACHE_TEXT = "Изменение баланса";
-const COLOR_INPUT_TEXT = "color: #000000 !important";
-const ALLOWED_TOPICS = ['1', '2', '3']; // С кавычками
-const ALLOWED_GROUPS = [1]; // БЕЗ кавычек
+	const ADD_CACHE_TEXT = "Изменение баланса";
+	const COLOR_INPUT_TEXT = "color: #000000 !important";
+	const ALLOWED_TOPICS = ['1', '2', '3']; // С кавычками
+	const ALLOWED_GROUPS = [1]; // БЕЗ кавычек
+	
+	const OPERATIONS = [ // Наименование опции, коэффициент, в каких топиках есть (через пробел) или all
+		["Начисление", "1", "all"],
+		["Списание", "-1", "all"],
+		["От большой любви", "5", "1 2"],
+		["От маленькой любви", "0.1", "1 3"],
+		["От большой нелюбви", "-5", "1 2"],
+		["От маленькой нелюбви", "-0.1", "1 3"],
+	];
+	const ROUND = 2; // Если допускается дробный баланс, укажите кол-во знаков после запятой
+	// if 0 then 0.5555555 -> 0		1.999 -> 1
+	// if 1 then 0.5555555 -> 0.6
+	// if 2 then 0.5555555 -> 0.56
+	// if 3 then 0.5555555 -> 0.556
 
-const OPERATIONS = [ // Наименование опции, коэффициент, в каких топиках есть (через пробел) или all
-	["Начисление", "1", "all"],
-	["Списание", "-1", "all"],
-	["От большой любви", "5", "1 2"],
-	["От маленькой любви", "0.1", "1 3"],
-	["От большой нелюбви", "-5", "1 2"],
-	["От маленькой нелюбви", "-0.1", "1 3"],
-];
-const ROUND = 2; // Если допускается дробный баланс, укажите кол-во знаков после запятой
-// if 0 then 0.5555555 -> 0		1.999 -> 1
-// if 1 then 0.5555555 -> 0.6
-// if 2 then 0.5555555 -> 0.56
-// if 3 then 0.5555555 -> 0.556
+	const USE_WRAPPER = true; // false, если не хотите, чтобы сообщение как-то помечалось
 
-var currentTopic = $get.id;
+	// шаблон, по которому оборачивается пост.
+	// {{ADMIN_NAME}} - имя админа
+	// {{CACHE_BEFORE}} - баланс до изменения
+	// {{CACHE_AFTER}} - текущий баланс
+	const WRAPPER_START = `[spoiler="+ ({{ADMIN_NAME}})"]`;
+	const WRAPPER_END = `[/spoiler]`;
+	
+	// Если id есть в таблице ниже, будет подставлено имя из неё. Иначе будет имя профиля.
+	const ADMIN_NAMES_MAP = { // id, ник для подстановки
+		1: "Люто Страшный Админ",
+		2: "Кот админа",
+	}
+
+var currTopic_efof = $get.id;
 $(document).ready(function() {
-	if (!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currentTopic)) {
+	if (!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currTopic_efof)) {
 		$('#efof').remove();
 	} else {
 		console.group("4eDo script edit_field_on_fly ");
@@ -35,6 +50,7 @@ $(document).ready(function() {
 			const postRating = $(this);
 			const parentPost = postRating.closest('[data-user-id]');
 			const userId = parentPost.data('user-id');
+			const PID = parentPost.data('id').slice(1);
 
 			const $newDiv = $('<div></div>');
 
@@ -54,7 +70,7 @@ $(document).ready(function() {
 
 			$selType.append('<option value="0">Не выбрано</option>');
 			for (let opId = 0; opId < OPERATIONS.length; opId++) {
-				if(OPERATIONS[opId][2] == "all" || OPERATIONS[opId][2].split(" ").includes(currentTopic)) {
+				if(OPERATIONS[opId][2] == "all" || OPERATIONS[opId][2].split(" ").includes(currTopic_efof)) {
 					$selType.append(`<option value="${OPERATIONS[opId][1]}">${OPERATIONS[opId][0]} (${OPERATIONS[opId][1] > 0 ? '+' : ''}${OPERATIONS[opId][1]})</option>`);
 				}
 			}
@@ -81,7 +97,7 @@ $(document).ready(function() {
 					$labelType.css('opacity', '0.5').css('pointer-events', 'none');
 					$labelCount.css('opacity', '0.5').css('pointer-events', 'none');
 					$buttonGo.css('opacity', '0.5').css('pointer-events', 'none');
-					getCurrentValueAndSetNew(action, count, userId, $inputCount, $buttonGo, $newDiv);
+					getCurrentValueAndSetNew(action, count, userId, $inputCount, $buttonGo, $newDiv, PID);
 				});
 
 			$newDiv.append($button, $labelType, $labelCount, $buttonGo);
@@ -90,7 +106,7 @@ $(document).ready(function() {
 			inpId++;
 		});
 
-		async function getCurrentValueAndSetNew(action, count, uid, $inputCount, $buttonGo, $container) {
+		async function getCurrentValueAndSetNew(action, count, uid, $inputCount, $buttonGo, $container, PID) {
 			try {
 				let response = await fetch(`/profile.php?section=fields&id=` + uid);
 				let buffer = await response.arrayBuffer();
@@ -151,6 +167,35 @@ $(document).ready(function() {
 <tr><td>Стало:</td><td>${targetValue}</td></tr></table>
 <p>Новые значения будут видны после обновления страницы.</p>`);
 							$container.append($successMessage);
+
+							if(USE_WRAPPER) {
+								let postBody;
+
+								$.ajax({
+									url: "/edit.php?id=" + PID,
+									method: 'get',
+									// dataType: 'json',
+									async: false,
+									success: function(data){
+										console.log(data);
+										// TODO
+									}
+								});
+								
+								const post_with_wrapper = WRAPPER_START + postBody + WRAPPER_END;
+								wrapper_title = wrapper_title
+									.replaceAll("{{CACHE_BEFORE}}", oldValue)
+									.replaceAll("{{CACHE_AFTER}}", targetValue)
+									.replaceAll("{{ADMIN_NAME}}", ADMIN_NAMES_MAP.get(UserID) || UserLogin);
+								
+								const getPostContentUrl = new URL(window.location.origin + "/api.php");
+								getPostContentUrl.searchParams.append("method", "post.get");
+								getPostContentUrl.searchParams.append("post_id", PID);
+								getPostContentUrl.searchParams.append("fields", ["message"]);
+
+								
+							
+							}
 						})
 						.catch(error => {
 							console.error('Ошибка отправки данных:', error);
