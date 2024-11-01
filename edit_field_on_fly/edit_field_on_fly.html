@@ -1,154 +1,284 @@
 <script id="efof">
-    const FIELD_ID_FOR_EDIT = "fld1";
-    const ADD_CACHE_TEXT = "Изменение баланса";
-    const COLOR_INPUT_TEXT = "color: #000000 !important";
-    const ALLOWED_TOPICS = ['1']; // С кавычками
-    const ALLOWED_GROUPS = [1]; // БЕЗ кавычек
+/** СКРИПТ ИЗМЕНЕНИЯ БАЛАНСА СО СТРАНИЦЫ БАНКА
+	https://github.com/4eDo/mybb/blob/main/edit_field_on_fly/readme.md
+ 	Версия от 2024-11-01
+**/
+const FIELD_ID_FOR_EDIT = "fld4";
+const ADD_CACHE_TEXT = "Изменение баланса";
+const COLOR_INPUT_TEXT = "color: #000000 !important";
+const ALLOWED_TOPICS = ['1', '2', '3']; // С кавычками
+const ALLOWED_GROUPS = [1]; // БЕЗ кавычек
 
-    var currentTopic = $get.id;
-    $(document).ready(function() {
-    if(!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currentTopic)) {
-        $('#efof').remove();
-    } else {
-        console.group("4eDo script edit_field_on_fly ");
-        console.log("%c~~ Скрипт для быстрого начисления/списания средств. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-        console.groupEnd();
-        
-        const postRatings = $('.post-rating');
-        let inpId = 0;
-    
-        postRatings.each(function() {
-            const postRating = $(this);
-            const parentPost = postRating.closest('[data-user-id]');
-            const userId = parentPost.data('user-id');
-    
-            const $newDiv = $('<div></div>');
-    
-            const $button = $('<input type="button" />')
-                .addClass('edit_on_fly button preview')
-                .val(ADD_CACHE_TEXT)
-                .css('cursor', 'pointer')
-                .on('click', function() {
-                    $labelType.show();
-                });
-    
-            const $selType = $('<select></select>')
-                .attr('id', `select-type-${inpId}`)
-                .on('change', function() {
-                    $labelCount.toggle($selType.val() !== "0");
-                });
-    
-            $selType.append('<option value="0">Не выбрано</option>')
-                .append('<option value="add">начисление</option>')
-                .append('<option value="subtract">списание</option>');
-    
-            const $labelType = $('<p>Тип операции: </p>').hide().append($selType);
-            const $inputCount = $('<input type="number" min="0" />')
-                .attr('style', COLOR_INPUT_TEXT)
-                .attr('id', `input-count-${inpId}`)
-                .on('input', function() {
-                    $buttonGo.toggle($inputCount.val() > 0);
-                });
-    
-            const $labelCount = $('<p>Количество: </p>').hide().append($inputCount);
-    
-            const $buttonGo = $('<input type="button" />')
-                .addClass('edit_on_fly button submit')
-                .val("Выполнить")
-                .hide()
-                .css('cursor', 'pointer')
-                .on('click', function() {
-                    const action = $selType.val();
-                    const count = $inputCount.val();
-                    $buttonGo.prop('disabled', true);
-                    $labelType.css('opacity', '0.5').css('pointer-events', 'none');
-                    $labelCount.css('opacity', '0.5').css('pointer-events', 'none');
-                    $buttonGo.css('opacity', '0.5').css('pointer-events', 'none');
-                    sendDataThroughIframe(action, count, userId, $inputCount, $buttonGo, $newDiv);
-                });
-    
-            $newDiv.append($button, $labelType, $labelCount, $buttonGo);
-            postRating.after($newDiv);
-    
-            inpId++;
-        });
-    
-    function sendDataThroughIframe(action, count, uid, $inputCount, $buttonGo, $container) {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        iframe.src = window.location.origin + '/profile.php?section=fields&id=' + uid;
-    
-        iframe.onload = function() {
-            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-    
-            if (!iframeDocument) {
-                const $errorMessage = $('<p class="editOnFly_error">Произошла ошибка.</p>');
-                $container.append($errorMessage);
-                document.body.removeChild(iframe);
-                return;
-            }
-    
-            const targetInput = iframeDocument.querySelector('input[name="form[' + FIELD_ID_FOR_EDIT + ']"]');
-            const submitButton = iframeDocument.querySelector('#profile8 > p > input');
-    
-            if (targetInput) {
-                let targetValue = parseInt(targetInput.value) || 0;
-                const oldValue = targetValue;
-    
-                if (action === 'add') {
-                    targetValue += parseInt(count);
-                } else if (action === 'subtract') {
-                    targetValue -= parseInt(count);
-                }
-    
-                targetInput.value = targetValue;
-    
-                if (submitButton) {
-                    submitButton.click();
-    
-                    const $successMessage = $(`
-                        <table class="editOnFly_success" border="1" style="margin-top: 10px;">
-                            <tr>
-                                <td>Тип операции:</td>
-                                <td>${action === 'add' ? 'начисление' : 'списание'}</td>
-                            </tr>
-                            <tr>
-                                <td>Количество:</td>
-                                <td>${count}</td>
-                            </tr>
-                            <tr>
-                                <td>Было:</td>
-                                <td>${oldValue}</td>
-                            </tr>
-                            <tr>
-                                <td>Стало:</td>
-                                <td>${targetValue}</td>
-                            </tr>
-                        </table>
-                        <p>Новые значения будут видны после обновления страницы.</p>
-                    `);
-                    $container.append($successMessage);
-                }
-            } else {
-                const $errorMessage = $('<p class="editOnFly_error">Произошла ошибка.</p>');
-                $container.append($errorMessage);
-                document.body.removeChild(iframe);
-                return;
-            }
-    
-            iframe.onload = function() {
-                document.body.removeChild(iframe);
-            };
-        };
-    
-        iframe.onerror = function() {
-            const $errorMessage = $('<p class="editOnFly_error">Произошла ошибка.</p>');
-            $container.append($errorMessage);
-            document.body.removeChild(iframe);
-        };
-    }
-       
-    }
-    });
-    </script>
+const OPERATIONS = [ // Наименование опции, коэффициент, в каких топиках есть (через пробел) или all
+	["Начисление", "1", "all"],
+	["Списание", "-1", "all"],
+	["От большой любви", "5", "1 2"],
+	["От маленькой любви", "0.1", "1 3"],
+	["От большой нелюбви", "-5", "1 2"],
+	["От маленькой нелюбви", "-0.1", "1 3"],
+];
+const ROUND = 2; // Если допускается дробный баланс, укажите кол-во знаков после запятой
+
+const USE_WRAPPER = true; // false, если не хотите, чтобы сообщение как-то помечалось
+
+// шаблон, по которому оборачивается пост.
+// {{ADMIN_NAME}} - имя админа
+// {{CACHE_BEFORE}} - баланс до изменения
+// {{CACHE_AFTER}} - баланс после изменения
+const WRAPPER_START = `[spoiler="[table layout=auto width=100]
+[tr]
+[td][b]ОБРАБОТАНО[/b] ({{ADMIN_NAME}})[/td]
+[td][b]Было[/b]: {{CACHE_BEFORE}}[/td]
+[td][b]Стало[/b]: {{CACHE_AFTER}}[/td]
+[/tr]
+[/table]"]`
+const WRAPPER_END = `[/spoiler]`;
+
+// Если id есть в таблице ниже, будет подставлено имя из неё. Иначе будет имя профиля.
+const ADMIN_NAMES = { // id, ник для подстановки
+	1: "Кот админа",
+	3: "Люто Страшный Админ",
+}
+
+var currTopic_efof = $get.id;
+$(document).ready(function() {
+	if (!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currTopic_efof)) {
+		$('#efof').remove();
+	} else {
+		console.group("4eDo script edit_field_on_fly ");
+		console.log("%c~~ Скрипт для быстрого начисления/списания средств. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
+		console.groupEnd();
+
+		appendEfofButtons();		
+
+		async function getCurrentValueAndSetNew(action, count, uid, $container, PID) {
+		    try {
+		        var old_url = document.URL;
+		
+		        // console.log("getCurrentValueAndSetNew: start");
+		        let profileFields_url = `/profile.php?section=fields&id=` + uid;
+		        let profileFields_fid = '#profile8';
+		
+		        // Получаем данные формы
+		        let profileFields = await getFormObjectFromPage(profileFields_url, uid, profileFields_fid);
+		        // console.log("getCurrentValueAndSetNew: получена форма", profileFields);
+		
+		        let profileFields_fldKey = `form[${FIELD_ID_FOR_EDIT}]`;
+		        let currentValue = parseFloat(profileFields[profileFields_fldKey]) || 0;
+		        let oldValue = currentValue;
+		        let newValue = roundToDecimals(currentValue + parseFloat(action) * parseInt(count));
+		        profileFields[profileFields_fldKey] = `${newValue}`;
+		        // console.log("getCurrentValueAndSetNew: установлено новое значение", profileFields);
+		
+		        let successMessage = `<table class="editOnFly_success" border="1" style="margin-top: 10px;">`
+		            + `<tr><td>Тип операции:</td>`
+		            + `<td>${action > 0 ? 'начисление (+' : 'списание ('} ${parseFloat(action)})</td></tr>`
+		            + `<tr><td>Количество:</td><td>${count}</td></tr>`
+		            + `<tr><td>Было:</td><td>${oldValue}</td></tr>`
+		            + `<tr><td>Стало:</td><td>${newValue}</td></tr></table>`
+		            + `<p>Новые значения будут видны после обновления страницы.</p>`;
+				successMessage += USE_WRAPPER ? `<p><strong>Оборачиваем сообщение.</strong></p>` : ``;
+		
+		        history.replaceState(null, null, profileFields_url);
+		        setTimeout(function () {
+		            history.replaceState(null, null, old_url);
+		        }, 1000);
+		        let sendResult = await sendForm(profileFields_url, profileFields);
+		        // console.log("getCurrentValueAndSetNew: результат отправки", sendResult);
+		        if (sendResult) {
+		            $container.append($(successMessage));
+		        } else {
+		            throw new Error(`Произошла ошибка при отправке данных.`);
+		        }
+		
+		        if (USE_WRAPPER) {
+		            let editPost_url = "/edit.php?id=" + PID;
+		            let editPost_fid = "#post";
+		            let editPost = await getFormObjectFromPage(editPost_url, uid, editPost_fid);
+		
+		            let editPost_fldKey = `req_message`;
+		            let userPost = editPost[editPost_fldKey];
+		            let post_with_wrapper = WRAPPER_START + userPost + WRAPPER_END;
+		            post_with_wrapper = post_with_wrapper
+		                .replaceAll("{{CACHE_BEFORE}}", oldValue)
+		                .replaceAll("{{CACHE_AFTER}}", newValue)
+		                .replaceAll("{{ADMIN_NAME}}", ADMIN_NAMES[UserID] || UserLogin);
+		            editPost[editPost_fldKey] = post_with_wrapper;
+		            console.log("getCurrentValueAndSetNew: обёрнутое сообщение", editPost);
+		
+		            let success_wrap = `<p>Сообщение обёрнуто.</p>`;
+		            history.replaceState(null, null, editPost_url);
+		            setTimeout(function () {
+		                history.replaceState(null, null, old_url);
+		            }, 1000);
+		
+		            let sendResult_wrap = await sendForm(editPost_url, editPost);
+		            // console.log("getCurrentValueAndSetNew: результат отправки обёрнутого сообщения", sendResult_wrap);
+		            if (sendResult_wrap) {
+		                $container.append($(success_wrap));
+		            } else {
+		                throw new Error(`Произошла ошибка при оборачивании сообщения.`);
+		            }
+		        }
+		    } catch (error) {
+		        $container.append($(`<p class="editOnFly_error">${error}</p>`));
+		    }
+		}
+
+		function appendEfofButtons() {
+			const postRatings = $('.post-rating');
+			let inpId = 0;
+
+			postRatings.each(function() {
+				const postRating = $(this);
+				const parentPost = postRating.closest('[data-user-id]');
+				const userId = parentPost.data('user-id');
+				const PID = parentPost.attr("id").slice(1);
+
+				const $newDiv = $('<div></div>');
+
+				const $button = $('<input type="button" />')
+					.addClass('edit_on_fly button preview')
+					.val(ADD_CACHE_TEXT)
+					.css('cursor', 'pointer')
+					.on('click', function() {
+						$labelType.show();
+					});
+
+				const $selType = $('<select></select>')
+					.attr('id', `select-type-${inpId}`)
+					.on('change', function() {
+						$labelCount.toggle($selType.val() !== "0");
+					});
+
+				$selType.append('<option value="0">Не выбрано</option>');
+				for (let opId = 0; opId < OPERATIONS.length; opId++) {
+					if (OPERATIONS[opId][2] == "all" || OPERATIONS[opId][2].split(" ").includes(currTopic_efof)) {
+						$selType.append(`<option value="${OPERATIONS[opId][1]}">${OPERATIONS[opId][0]} (${OPERATIONS[opId][1] > 0 ? '+' : ''}${OPERATIONS[opId][1]})</option>`);
+					}
+				}
+
+				const $labelType = $('<p>Тип операции: </p>').hide().append($selType);
+				const $inputCount = $('<input type="number" min="0" step="1" />')
+					.attr('style', COLOR_INPUT_TEXT)
+					.attr('id', `input-count-${inpId}`)
+					.on('input', function() {
+						$buttonGo.toggle($inputCount.val() > 0);
+					});
+
+				const $labelCount = $('<p>Количество: </p>').hide().append($inputCount);
+
+				const $buttonGo = $('<input type="button" />')
+					.addClass('edit_on_fly button submit')
+					.val("Выполнить")
+					.hide()
+					.css('cursor', 'pointer')
+					.on('click', function() {
+						const action = $selType.val();
+						const count = $inputCount.val();
+						$buttonGo.prop('disabled', true);
+						$labelType.css('opacity', '0.5').css('pointer-events', 'none');
+						$labelCount.css('opacity', '0.5').css('pointer-events', 'none');
+						$buttonGo.css('opacity', '0.5').css('pointer-events', 'none');
+						getCurrentValueAndSetNew(action, count, userId, $newDiv, PID);
+					});
+
+				$newDiv.append($button, $labelType, $labelCount, $buttonGo);
+				postRating.after($newDiv);
+
+				inpId++;
+			});
+		}
+
+		/** Получение формы со страницы, пакуется в JSON */
+		function getFormObjectFromPage(url, uid, formId) {
+			const data = {};
+			$.ajax({
+				url: url,
+				method: 'get',
+				async: false,
+				success: function(pageContent) {
+					let parser = new DOMParser();
+					let doc = parser.parseFromString(pageContent, 'text/html');
+					let form = doc.querySelector(formId);
+					if (form) {
+						const formData = new FormData(form);
+						for (const [key, value] of formData.entries()) {
+							data[key] = value;
+							// console.log(`${key}: ${value}`);
+						}
+						return data;
+					} else {
+						throw new Error(`Форма '${formId}' не найдена.`);
+					}					
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+			        console.error("Ошибка при выполнении AJAX-запроса:", textStatus, errorThrown);
+					throw new Error(`Ошибка при загрузке страницы ${url} : ${textStatus}`);
+			    }
+			});
+			return data;
+		}
+
+        /** Отправка формы */
+		async function sendForm(url, jsonForm) {
+		    let newFormData = new FormData();
+		    for (let key in jsonForm) {
+		        newFormData.append(key, jsonForm[key]);
+		    }
+		    try {
+		        const response = await fetch(url, {
+		            method: 'POST',
+		            body: serializeFormDataWithCustomSerialize2(newFormData),
+		            headers: {
+		                'Content-Type': 'application/x-www-form-urlencoded'
+		            }
+		        });
+		        // console.log(response);
+		        if (response.ok) {
+		            return true;
+		        } else {
+		            console.error('Ошибка отправки данных:', response.statusText);
+		            return false;
+		        }
+		    } catch (error) {
+		        console.error('Ошибка отправки данных:', error);
+		        return false;
+		    }
+		}
+		
+		/** Когда допускается дробный баланс, следим за количеством знаков, ибо js порой косячит */
+		function roundToDecimals(num) {
+			if (ROUND == 0) {
+				return parseInt(num);
+			}
+			if (Number.isInteger(num)) {
+				return num;
+			} else {
+				return parseFloat(num.toFixed(ROUND));
+			}
+		}
+		
+		/** Сериализация */
+		function serializeFormDataWithCustomSerialize2(formData) {
+			const dataArray = [];
+			for (const [key, value] of formData.entries()) {
+				dataArray.push({
+					name: key,
+					value: value
+				});
+			}
+			const fakeForm = $('<form>');
+			$.each(dataArray, function(index, item) {
+				fakeForm.append($('<input>').attr({
+					type: 'hidden',
+					name: item.name,
+					value: item.value
+				}));
+			});
+		
+			return fakeForm.serialize2();
+		}
+	}
+});
+</script>
