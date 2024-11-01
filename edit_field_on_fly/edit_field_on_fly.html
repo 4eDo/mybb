@@ -40,7 +40,7 @@ const ADMIN_NAMES = { // id, ник для подстановки
 	3: "Люто Страшный Админ",
 }
 
-var currTopic_efof = $get.id;
+var currTopic_efof = new URLSearchParams(window.location.search).get('id');
 $(document).ready(function() {
 	if (!ALLOWED_GROUPS.includes(GroupID) || !ALLOWED_TOPICS.includes(currTopic_efof)) {
 		$('#efof').remove();
