@@ -1,4 +1,8 @@
-<script id = "efof">
+<script id="efof">
+/** СКРИПТ ИЗМЕНЕНИЯ БАЛАНСА СО СТРАНИЦЫ БАНКА
+	https://github.com/4eDo/mybb/blob/main/edit_field_on_fly/readme.md
+ 	Версия от 2024-11-01
+**/
 const FIELD_ID_FOR_EDIT = "fld4";
 const ADD_CACHE_TEXT = "Изменение баланса";
 const COLOR_INPUT_TEXT = "color: #000000 !important";
@@ -25,13 +29,20 @@ const USE_WRAPPER = true; // false, если не хотите, чтобы со�
 // {{ADMIN_NAME}} - имя админа
 // {{CACHE_BEFORE}} - баланс до изменения
 // {{CACHE_AFTER}} - текущий баланс
-const WRAPPER_START = `[spoiler="+ ({{ADMIN_NAME}})"]`;
+// const WRAPPER_START = `[spoiler="+ ({{ADMIN_NAME}})"]`;
+const WRAPPER_START = `[spoiler="[table layout=auto width=100]
+[tr]
+[td][b]ОБРАБОТАНО[/b] ({{ADMIN_NAME}})[/td]
+[td][b]Было[/b]: {{CACHE_BEFORE}}[/td]
+[td][b]Стало[/b]: {{CACHE_AFTER}}[/td]
+[/tr]
+[/table]"]`
 const WRAPPER_END = `[/spoiler]`;
 
 // Если id есть в таблице ниже, будет подставлено имя из неё. Иначе будет имя профиля.
 const ADMIN_NAMES = { // id, ник для подстановки
-	1: "Люто Страшный Админ",
-	2: "Кот админа",
+	1: "Кот админа",
+	3: "Люто Страшный Админ",
 }
 
 var currTopic_efof = $get.id;
@@ -45,153 +56,79 @@ $(document).ready(function() {
 
 		appendEfofButtons();		
 
-		function getCurrentValueAndSetNew(action, count, uid, $container, PID) {
-			try {
-				console.log("getCurrentValueAndSetNew: start");
-				let profileFields_url = `/profile.php?section=fields&id=` + uid;
-				let profileFields_fid = '#profile8';
-				let profileFields = getFormObjectFromPage(profileFields_url, uid, profileFields_fid);
-				console.log("getCurrentValueAndSetNew: getted form");console.log(profileFields);
-				
-				let profileFields_fldKey = `form[${FIELD_ID_FOR_EDIT}]`;
-				let currentValue = parseFloat(profileFields[profileFields_fldKey]) || 0;
-				let oldValue = currentValue;
-				let newValue = roundToDecimals(currentValue + parseFloat(action) * parseInt(count));
-				profileFields[profileFields_fldKey] = `${newValue}`;
-				console.log("getCurrentValueAndSetNew: set new val");console.log(profileFields);
-				
-				let success = `<table class="editOnFly_success" border="1" style="margin-top: 10px;">`
-							+ `<tr><td>Тип операции:</td>`
-							+ `<td>${action > 0 ? 'начисление (+' : 'списание ('} ${parseFloat(action)})</td></tr>`
-							+ `<tr><td>Количество:</td><td>${count}</td></tr>`
-							+ `<tr><td>Было:</td><td>${oldValue}</td></tr>`
-							+ `<tr><td>Стало:</td><td>${newValue}</td></tr></table>`
-							+ `<p>Новые значения будут видны после обновления страницы.</p>`;
-				let sendResult = sendForm(profileFields_url, profileFields);
-				console.log("getCurrentValueAndSetNew: send result is " + sendResult);
-				if(sendResult) {
-					$container.append($(success));
-				}
-
-				if(USE_WRAPPER) {
-					let editPost_url = "/edit.php?id=" + PID;
-					let editPost_fid = "#post";
-					let editPost = getFormObjectFromPage(editPost_url, uid, editPost_fid);
-					
-				}
-			} catch (error) {
-				$container.append($(`<p class="editOnFly_error">${error}</p>`));
-			}
-		}
+		async function getCurrentValueAndSetNew(action, count, uid, $container, PID) {
+		    try {
+		        var old_url = document.URL;
 		
-// 		async function old_getCurrentValueAndSetNew(action, count, uid, $container, PID) {
-// 			try {
-// 				let response = await fetch(`/profile.php?section=fields&id=` + uid);
-// 				let buffer = await response.arrayBuffer();
-// 				let decoder = new TextDecoder('windows-1251');
-// 				let htmlText = decoder.decode(buffer);
-// 				// console.log("HTML Text:", htmlText);
-// 				let parser = new DOMParser();
-// 				let doc = parser.parseFromString(htmlText, 'text/html');
-// 				let form = doc.querySelector('#profile8');
-// 				if (form) {
-// 					const formData = new FormData(form); // Не принимает отправку только одного поля, нахально затирает остальные
-// 					let fldKey = `form[${FIELD_ID_FOR_EDIT}]`;
-
-// 					for (const [key, value] of formData.entries()) {
-// 						console.log(`${key}: ${value}`);
-// 						if (key == fldKey) {
-// 							targetInput = value;
-// 						}
-// 					}
-
-// 					const data = {};
-// 					for (const [key, value] of formData.entries()) {
-// 						data[key] = value;
-// 					}
-
-// 					let targetValue = parseFloat(targetInput) || 0;
-// 					const oldValue = targetValue;
-
-// 					targetValue = roundToDecimals(targetValue + parseFloat(action) * parseInt(count));
-// 					data[fldKey] = targetValue;
-
-// 					const newFormData = new FormData();
-// 					for (const key in data) {
-// 						newFormData.append(key, data[key]);
-// 					}
-
-// 					var url = document.URL;
-// 					history.replaceState(null, null, '/profile.php?section=fields&id=' + uid);
-// 					setTimeout(function() {
-// 						history.replaceState(null, null, url);
-// 					});
-// 					fetch('/profile.php?section=fields&id=' + uid, {
-// 							method: 'POST',
-// 							body: serializeFormDataWithCustomSerialize2(newFormData),
-// 							headers: {
-// 								'Content-Type': 'application/x-www-form-urlencoded'
-// 							}
-// 						})
-// 						.then(response => {
-// 							console.log(response);
-
-
-// 							const $successMessage = $(`<table class="editOnFly_success" border="1" style="margin-top: 10px;">
-// <tr><td>Тип операции:</td>
-// <td>${action > 0 ? 'начисление (+' : 'списание ('} ${parseFloat(action)})</td></tr>
-// <tr><td>Количество:</td><td>${count}</td></tr>
-// <tr><td>Было:</td><td>${oldValue}</td></tr>
-// <tr><td>Стало:</td><td>${targetValue}</td></tr></table>
-// <p>Новые значения будут видны после обновления страницы.</p>`);
-// 							$container.append($successMessage);
-
-// 							if (USE_WRAPPER) {
-// 								let postBody;
-
-// 								$.ajax({
-// 									url: "/edit.php?id=" + PID,
-// 									method: 'get',
-// 									// dataType: 'json',
-// 									async: false,
-// 									success: function(data) {
-// 										console.log(data);
-// 										// TODO
-// 									}
-// 								});
-
-// 								const post_with_wrapper = WRAPPER_START + postBody + WRAPPER_END;
-// 								wrapper_title = wrapper_title
-// 									.replaceAll("{{CACHE_BEFORE}}", oldValue)
-// 									.replaceAll("{{CACHE_AFTER}}", targetValue)
-// 									.replaceAll("{{ADMIN_NAME}}", ADMIN_NAMES.get(UserID) || UserLogin);
-
-// 								const getPostContentUrl = new URL(window.location.origin + "/api.php");
-// 								getPostContentUrl.searchParams.append("method", "post.get");
-// 								getPostContentUrl.searchParams.append("post_id", PID);
-// 								getPostContentUrl.searchParams.append("fields", ["message"]);
-
-
-
-// 							}
-// 						})
-// 						.catch(error => {
-// 							console.error('Ошибка отправки данных:', error);
-// 							const $errorMessage = $(`<p class="editOnFly_error">Произошла ошибка. ${error}</p>`);
-// 							$container.append($errorMessage);
-// 						});
-
-// 				} else {
-// 					console.error("Форма с id=profile8 не найдена.");
-// 					const $errorMessage = $(`<p class="editOnFly_error">Форма с id=profile8 не найдена.</p>`);
-// 					$container.append($errorMessage);
-// 				}
-// 			} catch (error) {
-// 				console.error('Ошибка при получении или обработке данных:', error);
-// 				const $errorMessage = $(`<p class="editOnFly_error">Произошла ошибка. ${error}</p>`);
-// 				$container.append($errorMessage);
-// 			}
-// 		}
+		        // console.log("getCurrentValueAndSetNew: start");
+		        let profileFields_url = `/profile.php?section=fields&id=` + uid;
+		        let profileFields_fid = '#profile8';
+		
+		        // Получаем данные формы
+		        let profileFields = await getFormObjectFromPage(profileFields_url, uid, profileFields_fid);
+		        // console.log("getCurrentValueAndSetNew: получена форма", profileFields);
+		
+		        let profileFields_fldKey = `form[${FIELD_ID_FOR_EDIT}]`;
+		        let currentValue = parseFloat(profileFields[profileFields_fldKey]) || 0;
+		        let oldValue = currentValue;
+		        let newValue = roundToDecimals(currentValue + parseFloat(action) * parseInt(count));
+		        profileFields[profileFields_fldKey] = `${newValue}`;
+		        // console.log("getCurrentValueAndSetNew: установлено новое значение", profileFields);
+		
+		        let successMessage = `<table class="editOnFly_success" border="1" style="margin-top: 10px;">`
+		            + `<tr><td>Тип операции:</td>`
+		            + `<td>${action > 0 ? 'начисление (+' : 'списание ('} ${parseFloat(action)})</td></tr>`
+		            + `<tr><td>Количество:</td><td>${count}</td></tr>`
+		            + `<tr><td>Было:</td><td>${oldValue}</td></tr>`
+		            + `<tr><td>Стало:</td><td>${newValue}</td></tr></table>`
+		            + `<p>Новые значения будут видны после обновления страницы.</p>`;
+				successMessage += USE_WRAPPER ? `<p><strong>Оборачиваем сообщение.</strong></p>` : ``;
+		
+		        history.replaceState(null, null, profileFields_url);
+		        setTimeout(function () {
+		            history.replaceState(null, null, old_url);
+		        }, 1000);
+		        let sendResult = await sendForm(profileFields_url, profileFields);
+		        // console.log("getCurrentValueAndSetNew: результат отправки", sendResult);
+		        if (sendResult) {
+		            $container.append($(successMessage));
+		        } else {
+		            throw new Error(`Произошла ошибка при отправке данных.`);
+		        }
+		
+		        if (USE_WRAPPER) {
+		            let editPost_url = "/edit.php?id=" + PID;
+		            let editPost_fid = "#post";
+		            let editPost = await getFormObjectFromPage(editPost_url, uid, editPost_fid);
+		
+		            let editPost_fldKey = `req_message`;
+		            let userPost = editPost[editPost_fldKey];
+		            let post_with_wrapper = WRAPPER_START + userPost + WRAPPER_END;
+		            post_with_wrapper = post_with_wrapper
+		                .replaceAll("{{CACHE_BEFORE}}", oldValue)
+		                .replaceAll("{{CACHE_AFTER}}", newValue)
+		                .replaceAll("{{ADMIN_NAME}}", ADMIN_NAMES[UserID] || UserLogin);
+		            editPost[editPost_fldKey] = post_with_wrapper;
+		            console.log("getCurrentValueAndSetNew: обёрнутое сообщение", editPost);
+		
+		            let success_wrap = `<p>Сообщение обёрнуто.</p>`;
+		            history.replaceState(null, null, editPost_url);
+		            setTimeout(function () {
+		                history.replaceState(null, null, old_url);
+		            }, 1000);
+		
+		            let sendResult_wrap = await sendForm(editPost_url, editPost);
+		            // console.log("getCurrentValueAndSetNew: результат отправки обёрнутого сообщения", sendResult_wrap);
+		            if (sendResult_wrap) {
+		                $container.append($(success_wrap));
+		            } else {
+		                throw new Error(`Произошла ошибка при оборачивании сообщения.`);
+		            }
+		        }
+		    } catch (error) {
+		        $container.append($(`<p class="editOnFly_error">${error}</p>`));
+		    }
+		}
 
 		function appendEfofButtons() {
 			const postRatings = $('.post-rating');
@@ -266,7 +203,6 @@ $(document).ready(function() {
 				method: 'get',
 				async: false,
 				success: function(pageContent) {
-				    
 					let parser = new DOMParser();
 					let doc = parser.parseFromString(pageContent, 'text/html');
 					let form = doc.querySelector(formId);
@@ -274,7 +210,7 @@ $(document).ready(function() {
 						const formData = new FormData(form);
 						for (const [key, value] of formData.entries()) {
 							data[key] = value;
-							console.log(`${key}: ${value}`);
+							// console.log(`${key}: ${value}`);
 						}
 						return data;
 					} else {
@@ -289,96 +225,65 @@ $(document).ready(function() {
 			return data;
 		}
 
-		/** Отправка формы */
-		function sendForm(url, jsonForm) {
-			let result;
-			let newFormData = new FormData();
-			for (let key in jsonForm) {
-				newFormData.append(key, jsonForm[key]);
-			}
-			
-			var old_url = document.URL;
-			history.replaceState(null, null, url);
-			setTimeout(function() {
-				history.replaceState(null, null, old_url);
-			});
-
-
-            fetch(url, {
-				method: 'POST',
-				body: serializeFormDataWithCustomSerialize2(newFormData),
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				}
-			})
-			.then(response => {
-				console.log(response);
-                result = true;
-			}) .then(result => {
-                console.log(result);
-                return true; // Успешная отправка
-            })
-            .catch(error => {
-                console.error('Ошибка отправки данных:', error);
-                return false; // Ошибка отправки
-            });
-			return result;
+        /** Отправка формы */
+		async function sendForm(url, jsonForm) {
+		    let newFormData = new FormData();
+		    for (let key in jsonForm) {
+		        newFormData.append(key, jsonForm[key]);
+		    }
+		    try {
+		        const response = await fetch(url, {
+		            method: 'POST',
+		            body: serializeFormDataWithCustomSerialize2(newFormData),
+		            headers: {
+		                'Content-Type': 'application/x-www-form-urlencoded'
+		            }
+		        });
+		        // console.log(response);
+		        if (response.ok) {
+		            return true;
+		        } else {
+		            console.error('Ошибка отправки данных:', response.statusText);
+		            return false;
+		        }
+		    } catch (error) {
+		        console.error('Ошибка отправки данных:', error);
+		        return false;
+		    }
 		}
-        
-	
+		
+		/** Когда допускается дробный баланс, следим за количеством знаков, ибо js порой косячит */
+		function roundToDecimals(num) {
+			if (ROUND == 0) {
+				return parseInt(num);
+			}
+			if (Number.isInteger(num)) {
+				return num;
+			} else {
+				return parseFloat(num.toFixed(ROUND));
+			}
+		}
+		
+		/** Сериализация */
+		function serializeFormDataWithCustomSerialize2(formData) {
+			const dataArray = [];
+			for (const [key, value] of formData.entries()) {
+				dataArray.push({
+					name: key,
+					value: value
+				});
+			}
+			const fakeForm = $('<form>');
+			$.each(dataArray, function(index, item) {
+				fakeForm.append($('<input>').attr({
+					type: 'hidden',
+					name: item.name,
+					value: item.value
+				}));
+			});
+		
+			return fakeForm.serialize2();
+		}
 	}
 });
-
-function roundToDecimals(num) {
-	if (ROUND == 0) {
-		return parseInt(num);
-	}
-	if (Number.isInteger(num)) {
-		return num;
-	} else {
-		return parseFloat(num.toFixed(ROUND));
-	}
-}
-
-function serializeFormDataWithCustomSerialize2(formData) {
-	const dataArray = [];
-	for (const [key, value] of formData.entries()) {
-		dataArray.push({
-			name: key,
-			value: value
-		});
-	}
-
-	const fakeForm = $('<form>');
-	$.each(dataArray, function(index, item) {
-		fakeForm.append($('<input>').attr({
-			type: 'hidden',
-			name: item.name,
-			value: item.value
-		}));
-	});
-
-	return fakeForm.serialize2();
-}
-
-function returnFakeForm(formData) {
-	const dataArray = [];
-	for (const [key, value] of formData.entries()) {
-		dataArray.push({
-			name: key,
-			value: value
-		});
-	}
-
-	const fakeForm = $('<form>');
-	$.each(dataArray, function(index, item) {
-		fakeForm.append($('<input>').attr({
-			type: 'hidden',
-			name: item.name,
-			value: item.value
-		}));
-	});
-
-	return fakeForm;
-}
 </script>
