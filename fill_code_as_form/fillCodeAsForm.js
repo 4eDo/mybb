@@ -6,7 +6,7 @@ console.groupEnd();
 const url = '/pages/_templates_user';
 
 var currentForum = FORUM.topic&&FORUM.topic.forum_id ? FORUM.topic.forum_id : new URLSearchParams(window.location.search).get('fid');
-var currentTopic = $get.id;
+var currentTopic = new URLSearchParams(window.location.search).get('id');
 
 var userTemplateList = [];
 
