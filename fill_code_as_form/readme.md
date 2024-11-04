@@ -1,5 +1,6 @@
 ## Также опубликован:
-- Маяк: [Заполнение кодов через форму](https://mayak.f-rpg.me/viewtopic.php?id=591) 
+- Маяк: [Заполнение кодов через форму](https://mayak.f-rpg.me/viewtopic.php?id=591)
+- Quadro.Boards: [Заполнение кодов через форму](https://support.rusff.me/viewtopic.php?id=4000#p83385)
 
 ## Rusff: проверено, работает.
 ## Mybb: проверено, работает.
