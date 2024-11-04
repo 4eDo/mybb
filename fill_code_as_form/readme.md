@@ -138,10 +138,14 @@ _templates_user
 			<div id="targetForm" style="display:none"></div>
 		</div>
 	</div>
-	
+    <script>
+        const COLOR_INPUT_TEXT_fcaf = "color: #000000 !important";
+    </script>
 	<script type="text/javascript" src="https://4edo.github.io/mybb/fill_code_as_form/fillCodeAsForm.js"></script>
 <!-- end FILL CODE AS FORM -->
 ```
+
+Строка `const COLOR_INPUT_TEXT_fcaf = "color: #000000 !important";` отвечает за принудительное изменение цвета текста в полях ввода. По умолчанию используется чёрный. Для изменения укажите свой или укажите просто пустые кавычки `""`, чтобы использовать стиль форума.
 
 В список стилей внесите настройки для этого окна, чтобы дизайнеру не приходилось ползать по всему форуму, выискивая запихнутые абы куда теги стилей.
 

@@ -153,7 +153,7 @@ function drawForm(id) {
 		}
 		
 		inputElement.id = `field_${field.tmpl}`;
-		inputElement.setAttribute('style', "color: #000000 !important");
+		inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
 		inputCell.appendChild(inputElement);
 		
 		row.appendChild(labelCell);
