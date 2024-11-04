@@ -5,6 +5,8 @@ console.groupEnd();
 // URL страницы с шаблонами
 const url = '/pages/_templates_user';
 
+let needHideNavlinks = typeof NEED_HIDE_NAVLINKS !== 'undefined' ? NEED_HIDE_NAVLINKS : true;
+
 var currentForum = FORUM.topic&&FORUM.topic.forum_id ? FORUM.topic.forum_id : new URLSearchParams(window.location.search).get('fid');
 var currentTopic = new URLSearchParams(window.location.search).get('id');
 
@@ -17,13 +19,13 @@ const navlinks = document.getElementById('pun-navlinks');
 function showTemplateWindow() {
 	overlay.style.display = 'block';
 	popup.style.display = 'block';
-	navlinks.style.display = 'none';
+	if (needHideNavlinks) navlinks.style.display = 'none';
 }
 
 function hideTemplateWindow() {
 	overlay.style.display = 'none';
 	popup.style.display = 'none';
-	navlinks.style.display = 'block';
+	if (needHideNavlinks) navlinks.style.display = 'block';
 }
 
 async function fetchAndParseTemplates() {
