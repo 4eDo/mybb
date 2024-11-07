@@ -69,7 +69,7 @@
 /* Внешний вид ссылок */
 #sitemap_4eDo .tagItem{
   display: block;
-  width: 100%;
+  width: 90%;
   padding: 0px 5px;
   margin: 5px 0px;
   border: 1px solid #ccc;
