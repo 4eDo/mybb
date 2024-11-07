@@ -1,3 +1,8 @@
+console.group("4eDo script navigation_generator ");
+console.log("%c~~ Скрипт для генерации навигации по матчасти. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
+console.log("More info: https://github.com/4eDo/mybb/tree/main/navigation# ");
+console.groupEnd();
+
 function createTagList(data) {
   const tagMap = {};
   
