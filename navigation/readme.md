@@ -14,7 +14,7 @@
 
 ``` html
 <div id="sitemap_4eDo"></div>
-<div id="sitemap_4eDo_links">[
+<div id="sitemap_4eDo_links" hidden>[
   {
     "link": "https://www.example.com/link1",
     "title": "Люто важнючая информация",
