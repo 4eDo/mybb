@@ -3,167 +3,226 @@ const FORUMS_WITH_GAMES = {
   "done": [19]
 };
 
-let TOPICS = [];
 const DEBUG_MODE = true;
 const TOPICS_PER_REQUEST = 100;
-const TOPICS_PER_POSTS_REQUEST = 10;
 const POSTS_PER_REQUEST = 100;
 
-async function getTopics(forumIds, activeFlag) {
-  let skip = 0;
-  let limit = TOPICS_PER_REQUEST;
-  let allTopics = [];
-
-  while (true) {
-    const url = `/api.php?method=topic.get&forum_id=${forumIds.join(',')}&fields=id,subject,first_post&limit=${limit}&skip=${skip}`;
-    if (DEBUG_MODE) console.log(`Запрос тем: ${url}`);
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (!data || !data.response || !Array.isArray(data.response)) {
-        if (DEBUG_MODE) console.log("Пустой или некорректный ответ от сервера (topics).");
-        break;
-      }
-
-      const topicsReceived = data.response.length;
-      if (DEBUG_MODE) console.log(`Получено тем: ${topicsReceived}`);
-
-      for (const topic of data.response) {
-        if (topic.id && topic.subject && topic.first_post) {
-          const newTopic = {
-            topic_id: topic.id,
-            subject: topic.subject,
-            users: [],
-            posts_count: 0,
-            first_post: topic.first_post,
-            date: { y: 0, m: 0, d: 0 },
-            addon: {
-              display: true,
-              date: { y: 0, m: 0, d: 0 },
-              is_serial: false,
-              serial_first: 0
-            },
-            flags: { active: activeFlag, done: !activeFlag, full_date: false }
-          };
-
-          const dateRegex = /(?:(\d{1,7})-(\d{1,2})-(\d{1,2})|(\d{1,7})\/(\d{1,2})\/(\d{1,2})|(\d{1,7})\s+(\d{1,2})\s+(\d{1,2})|(\d{1,2})\.(\d{1,2})\.(\d{4})|(\d{1,2})-(\d{1,2})-(\d{4})|(\d{1,2})\/(\d{1,2})\/(\d{4}))/;
-          const match = topic.subject.match(dateRegex);
-          if (match) {
-            let year, month, day;
-            if (match[1]) { year = match[1]; month = match[2]; day = match[3]; }
-            else if (match[4]) { year = match[4]; month = match[5]; day = match[6]; }
-            else if (match[7]) { year = match[7]; month = match[8]; day = match[9]; }
-            else if (match[10]) { day = match[10]; month = match[11]; year = match[12]; }
-            else if (match[13]) { day = match[13]; month = match[14]; year = match[15]; }
-            else { day = match[16]; month = match[17]; year = match[18]; }
-            newTopic.date = { y: parseInt(year), m: parseInt(month), d: parseInt(day) };
-            newTopic.flags.full_date = true;
-          }
-          allTopics.push(newTopic);
-        } else {
-          console.error("Неполные данные темы:", topic);
+const monthMap = {
+  1: ["январь", "янв", "january", "jan"],
+  2: ["февраль", "февр", "february", "feb"],
+  3: ["март", "мар", "march", "mar"],
+  4: ["апрель", "апр", "april", "apr"],
+  5: ["май", "may"],
+  6: ["июнь", "июн", "june", "jun"],
+  7: ["июль", "июл", "july", "jul"],
+  8: ["август", "авг", "august", "aug"],
+  9: ["сентябрь", "сент", "september", "sep"],
+  10: ["октябрь", "окт", "october", "oct"],
+  11: ["ноябрь", "ноя", "november", "nov"],
+  12: ["декабрь", "дек", "december", "dec"]
+};
+// Получение месяца по названию
+function getMonthNumber(monthStr) {
+    for (const monthNumber in monthMap) {
+        if (monthMap[monthNumber].includes(monthStr.toLowerCase())) {
+            return parseInt(monthNumber);
         }
-      }
-
-      if (topicsReceived < limit) {
-        break;
-      }
-      skip += limit;
-    } catch (error) {
-      console.error(`Ошибка при выполнении запроса (topics): ${error}`);
-      break;
     }
-  }
-  TOPICS.push(...allTopics);
+    return 0;
+}
+function parseDate(subject) {
+    let dateParsed = false;
+    let parsedDate = null;
+
+    // 1. Проверка полного формата даты
+    const fullDateRegex = /(?:(\d{1,4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,4})|(\d{1,4})\s*[-.\/]\s*([a-zA-Zа-яА-Я]+)\s*[-.\/]?(\d{1,2})?)/i;
+    const fullDateMatch = subject.match(fullDateRegex);
+    if (fullDateMatch) {
+        let year, month, day;
+        if (fullDateMatch[1] && fullDateMatch[2] && fullDateMatch[3]) {
+            year = parseInt(fullDateMatch[1]);
+            month = parseInt(fullDateMatch[2]);
+            day = parseInt(fullDateMatch[3]);
+        } else if (fullDateMatch[4] && fullDateMatch[5]) {
+            year = parseInt(fullDateMatch[4]);
+            month = getMonthNumber(fullDateMatch[5].toLowerCase());
+            day = parseInt(fullDateMatch[6]) || 0;
+        }
+        if (year && month) {
+            parsedDate = {y: year, m: month, d: day};
+            dateParsed = true;
+        }
+    }
+
+    // 2. Проверка сокращенных форматов даты (без дня)
+    if (!dateParsed) {
+        const shortDateRegex = /(\d{1,2})\s*[-.\/]\s*(\d{4})|(\d{4})\s*[-.\/]\s*(\d{1,2})/;
+        const shortDateMatch = subject.match(shortDateRegex);
+        if (shortDateMatch) {
+            let year, month;
+            if (shortDateMatch[1] && shortDateMatch[2]) {
+                month = parseInt(shortDateMatch[1]);
+                year = parseInt(shortDateMatch[2]);
+            } else if (shortDateMatch[3] && shortDateMatch[4]) {
+                year = parseInt(shortDateMatch[3]);
+                month = parseInt(shortDateMatch[4]);
+            }
+            if (year && month) {
+                parsedDate = {y: year, m: month, d: 0};
+                dateParsed = true;
+            }
+        }
+    }
+
+    // 3. Проверка с удалением запятых и поиском месяца словом
+    if (!dateParsed) {
+        const noCommaSubject = subject.replace(/,/g, '');
+        const wordMonthRegex = new RegExp(`(${Object.values(monthMap).flat().join('|')})\\s*(\\d{4})`, 'i');
+        const wordMonthMatch = noCommaSubject.match(wordMonthRegex);
+        if (wordMonthMatch) {
+            const monthStr = wordMonthMatch[1];
+            const yearStr = wordMonthMatch[2];
+            const month = getMonthNumber(monthStr);
+            const year = parseInt(yearStr);
+            if (year && month) {
+                parsedDate = {y: year, m: month, d: 0};
+                dateParsed = true;
+            }
+        }
+    }
+
+    // 4. Проверка только года
+    if (!dateParsed) {
+        const yearOnlyRegex = /(\d{4})/;
+        const yearOnlyMatch = subject.match(yearOnlyRegex);
+        if (yearOnlyMatch) {
+            const year = parseInt(yearOnlyMatch[1]);
+            if (year) {
+                parsedDate = {y: year, m: 0, d: 0};
+                dateParsed = true;
+            }
+        }
+    }
+
+    return parsedDate;
 }
 
+async function fetchData(url) {
+  if (DEBUG_MODE) console.log(`Fetching: ${url}`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching ${url}:`, error);
+    return null;
+  }
+}
+
+async function getTopics(forumIds) {
+  const url = `/api.php?method=topic.get&forum_id=${forumIds.join(',')}&fields=id,subject,first_post&limit=${TOPICS_PER_REQUEST}`;
+  const data = await fetchData(url);
+  return data?.response || [];
+}
 
 async function getPosts(topicIds) {
-  if (!topicIds || topicIds.length === 0) return;
+  if (!topicIds || topicIds.length === 0) return [];
 
-  for (let i = 0; i < topicIds.length; i += TOPICS_PER_POSTS_REQUEST) {
-    const batch = topicIds.slice(i, i + TOPICS_PER_POSTS_REQUEST);
-    let skip = 0;
+  let skip = 0;
+  let allPosts = [];
+  while (true) {
+    const url = `/api.php?method=post.get&topic_id=${topicIds.join(',')}&fields=id,user_id,username,message,topic_id&limit=${POSTS_PER_REQUEST}&skip=${skip}`;
+    const data = await fetchData(url);
+    if (!data?.response) break;
+    allPosts.push(...data.response);
+    if (data.response.length < POSTS_PER_REQUEST) break;
+    skip += POSTS_PER_REQUEST;
+  }
+  return allPosts;
+}
 
-    while (true) {
-      const url = `/api.php?method=post.get&topic_id=${batch.join(',')}&fields=id,user_id,username,message,topic_id&limit=${POSTS_PER_REQUEST}&skip=${skip}`;
-      if (DEBUG_MODE) console.log(`Запрос постов: ${url}`);
+async function processForum(forumId, activeFlag) {
+  const topics = await getTopics([forumId]);
+  const topicIds = topics.map(topic => topic.id);
+  const posts = await getPosts(topicIds);
 
-      try {
-        const response = await fetch(url);
-        const data = await response.json();
+  const processedTopics = topics.map(topic => ({
+    ...topic,
+    posts_count: 0,
+    users: [],
+    flags: { active: activeFlag, done: !activeFlag, full_date: false },
+    addon: {
+      display: null,
+      date: { y: 0, m: 0, d: 0 },
+      is_serial: false,
+      serial_first: 0
+    }
+  }));
 
-        if (!data || !data.response || !Array.isArray(data.response)) {
-          if (DEBUG_MODE) console.log("Пустой или некорректный ответ от сервера (posts).");
-          break;
-        }
+  // обработка постов
+  for (const post of posts) {
+    const topicIndex = processedTopics.findIndex(t => t.id === post.topic_id);
+    if (topicIndex !== -1) {
+      processedTopics[topicIndex].posts_count++;
 
-        const postsReceived = data.response.length;
-        if (DEBUG_MODE) console.log(`Получено постов: ${postsReceived}`);
-
-        for (const post of data.response) {
-          if (post.user_id && post.username && post.message && post.topic_id) {
-            const topicIndex = TOPICS.findIndex(t => t.topic_id === parseInt(post.topic_id, 10));
-            if (topicIndex !== -1) {
-              TOPICS[topicIndex].posts_count++;
-              TOPICS[topicIndex].users.push([post.user_id, post.username]);
-
-              if (post.message.includes("[nick]")) {
-                console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag.`);
-              }
-
-              if (post.id === TOPICS[topicIndex].first_post) {
-                const addonRegex = /\[chronodisplay\](.*?)\[\/chronodisplay\]/;
-                const addonMatch = post.message.match(addonRegex);
-                if (addonMatch) {
-                  TOPICS[topicIndex].addon.display = addonMatch[1];
-                }
-
-                const dateRegexAddon = /\[chronodate\]y:\s*(\d+),\s*m:\s*(\d+),\s*d:\s*(\d+)\[\/chronodate\]/;
-                const dateMatchAddon = post.message.match(dateRegexAddon);
-                if (dateMatchAddon) {
-                  TOPICS[topicIndex].addon.date = { y: parseInt(dateMatchAddon[1]), m: parseInt(dateMatchAddon[2]), d: parseInt(dateMatchAddon[3]) };
-                }
-
-                const serialRegexAddon = /\[chronoserial\](.*?)\[\/chronoserial\]/;
-                const serialMatchAddon = post.message.match(serialRegexAddon);
-                if (serialMatchAddon) {
-                  TOPICS[topicIndex].addon.is_serial = true;
-                  TOPICS[topicIndex].addon.serial_first = parseInt(serialMatchAddon[1]);
-                }
-              }
-            } else {
-              console.error("Тема не найдена для поста:", post, TOPICS); // Добавлен вывод массива TOPICS для отладки
-            }
-          } else {
-            console.error("Неполные данные поста:", post);
-          }
-        }
-
-        if (postsReceived < POSTS_PER_REQUEST) {
-          break;
-        }
-        skip += POSTS_PER_REQUEST;
-
-      } catch (error) {
-        console.error(`Ошибка при выполнении запроса (posts): ${error}`);
-        break;
+      let user_data = [post.user_id, post.username];
+      const nickRegex = /\[nick\](.*?)\[\/nick\]/;
+      const nickMatch = post.message.match(nickRegex);
+      if (nickMatch) {
+        user_data.push(nickMatch[1].trim());
+        console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
       }
+      processedTopics[topicIndex].users.push(user_data);
+
+      if (post.id === processedTopics[topicIndex].first_post) {
+        const addonRegex = /\[chronodisplay\](.*?)\[\/chronodisplay\]/;
+        const addonMatch = post.message.match(addonRegex);
+        if (addonMatch) {
+          processedTopics[topicIndex].addon.display = addonMatch[1];
+        }
+
+        const dateRegexAddon = /\[chronodate\]y:\s*(\d+),\s*m:\s*(\d+),\s*d:\s*(\d+)\[\/chronodate\]/;
+        const dateMatchAddon = post.message.match(dateRegexAddon);
+        if (dateMatchAddon) {
+          processedTopics[topicIndex].addon.date = { y: parseInt(dateMatchAddon[1]), m: parseInt(dateMatchAddon[2]), d: parseInt(dateMatchAddon[3]) };
+        }
+
+        const serialRegexAddon = /\[chronoserial\](.*?)\[\/chronoserial\]/;
+        const serialMatchAddon = post.message.match(serialRegexAddon);
+        if (serialMatchAddon) {
+          processedTopics[topicIndex].addon.is_serial = true;
+          processedTopics[topicIndex].addon.serial_first = parseInt(serialMatchAddon[1]);
+        }
+      }
+    } else {
+      console.error("Тема не найдена для поста:", post);
     }
   }
+
+  // date parsing
+  for (const topic of processedTopics) {
+        const parsedDate = parseDate(topic.subject);
+        if (parsedDate) {
+            topic.date = parsedDate;
+            topic.flags.full_date = parsedDate.d !== 0;
+        } else {
+            console.warn("Не удалось разобрать дату в теме:", topic.subject);
+        }
+    }
+
+  return processedTopics;
 }
 
 async function main() {
-  const activeTopicsPromise = getTopics(FORUMS_WITH_GAMES.active, true);
-  const doneTopicsPromise = getTopics(FORUMS_WITH_GAMES.done, false);
+  const promises = Object.values(FORUMS_WITH_GAMES).flat().map(forumId =>
+    processForum(forumId, FORUMS_WITH_GAMES.active.includes(forumId))
+  );
 
-  await Promise.all([activeTopicsPromise, doneTopicsPromise]);
-
-  const topicIds = TOPICS.map(topic => topic.topic_id);
-  await getPosts(topicIds);
-  console.log(TOPICS);
+  const results = await Promise.all(promises);
+  console.log(results.flat());
 }
 
 main();
