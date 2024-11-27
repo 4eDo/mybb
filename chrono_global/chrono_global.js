@@ -216,7 +216,8 @@ async function processForum(forumId, activeFlag) {
             date: {y: 0, m: 0, d: 0},
             is_serial: false,
             serial_first: 0,
-            quest: false // добавлено поле quest
+            quest: false,
+            description: ""
         }
     }));
 
@@ -238,6 +239,7 @@ async function processForum(forumId, activeFlag) {
             if (post.id === processedTopics[topicIndex].first_post) {
                 const addons = parseAddons(post.message);
                 processedTopics[topicIndex].addon = {...processedTopics[topicIndex].addon, ...addons};
+                if(!processedTopics[topicIndex].addon.description) processedTopics[topicIndex].description = post.message;
             }
         } else {
             console.error("Тема не найдена для поста:", post);
