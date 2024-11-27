@@ -34,42 +34,36 @@ function parseDate(subject) {
     let dateParsed = false;
     let parsedDate = null;
 
-    // 1. Проверка полного формата даты
-    const fullDateRegex = /(?:(\d{1,4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,4})|(\d{1,4})\s*[-.\/]\s*([a-zA-Zа-яА-Я]+)\s*[-.\/]?(\d{1,2})?)/i;
-    const fullDateMatch = subject.match(fullDateRegex);
-    if (fullDateMatch) {
-        let year, month, day;
-        if (fullDateMatch[1] && fullDateMatch[2] && fullDateMatch[3]) {
-            year = parseInt(fullDateMatch[1]);
-            month = parseInt(fullDateMatch[2]);
-            day = parseInt(fullDateMatch[3]);
-        } else if (fullDateMatch[4] && fullDateMatch[5]) {
-            year = parseInt(fullDateMatch[4]);
-            month = getMonthNumber(fullDateMatch[5].toLowerCase());
-            day = parseInt(fullDateMatch[6]) || 0;
-        }
-        if (year && month) {
-            parsedDate = {y: year, m: month, d: day};
-            dateParsed = true;
-        }
-    }
+    //Регулярные выражения для разных форматов даты
+    const dateRegexes = [
+        //Формат ГГГГ-ММ-ДД
+        /(?:(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2}))/i,
+        //Формат ДД.ММ.ГГГГ
+        /(?:(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{4}))/i,
+        //Формат ГГГГ-ММ
+        /(?:(\d{4})\s*[-.\/]\s*([a-zA-Zа-яА-Я]+))/i,
+        /(?:(\d{4})\s*[-.\/]\s*(\d{1,2}))/i,
+        //Формат ММ-ГГГГ
+        /(?:(\d{1,2})\s*[-.\/]\s*(\d{4}))/i
+    ];
 
-    // 2. Проверка сокращенных форматов даты (без дня)
-    if (!dateParsed) {
-        const shortDateRegex = /(\d{1,2})\s*[-.\/]\s*(\d{4})|(\d{4})\s*[-.\/]\s*(\d{1,2})/;
-        const shortDateMatch = subject.match(shortDateRegex);
-        if (shortDateMatch) {
-            let year, month;
-            if (shortDateMatch[1] && shortDateMatch[2]) {
-                month = parseInt(shortDateMatch[1]);
-                year = parseInt(shortDateMatch[2]);
-            } else if (shortDateMatch[3] && shortDateMatch[4]) {
-                year = parseInt(shortDateMatch[3]);
-                month = parseInt(shortDateMatch[4]);
+    for (const regex of dateRegexes) {
+        const match = subject.match(regex);
+        if (match) {
+            let year, month, day;
+            if (match[1] && match[2] && match[3]) { // Формат с днем
+                year = parseInt(match[3]); //В зависимости от формата выбираем год
+                month = parseInt(match[2]);
+                day = parseInt(match[1]);
+            } else if (match[1] && match[2]) { // Формат без дня
+                year = parseInt(match[2]);
+                month = parseInt(match[1]);
+                day = 0;
             }
             if (year && month) {
-                parsedDate = {y: year, m: month, d: 0};
+                parsedDate = { y: year, m: month, d: day };
                 dateParsed = true;
+                break; //Выходим из цикла, если дата найдена
             }
         }
     }
@@ -85,7 +79,7 @@ function parseDate(subject) {
             const month = getMonthNumber(monthStr);
             const year = parseInt(yearStr);
             if (year && month) {
-                parsedDate = {y: year, m: month, d: 0};
+                parsedDate = { y: year, m: month, d: 0 };
                 dateParsed = true;
             }
         }
@@ -98,7 +92,21 @@ function parseDate(subject) {
         if (yearOnlyMatch) {
             const year = parseInt(yearOnlyMatch[1]);
             if (year) {
-                parsedDate = {y: year, m: 0, d: 0};
+                parsedDate = { y: year, m: 0, d: 0 };
+                dateParsed = true;
+            }
+        }
+    }
+  
+    // 5. Дополнительная проверка для формата "MM.YYYY-MM.YYYY" - берём только первую дату
+    if (!dateParsed) {
+        const complexDateRegex = /(\d{1,2})\.(\d{4})-(\d{1,2})\.(\d{4})/i;
+        const complexDateMatch = subject.match(complexDateRegex);
+        if (complexDateMatch) {
+            const month = parseInt(complexDateMatch[1]);
+            const year = parseInt(complexDateMatch[2]);
+            if (month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
+                parsedDate = { y: year, m: month, d: 0 };
                 dateParsed = true;
             }
         }
@@ -106,6 +114,55 @@ function parseDate(subject) {
 
     return parsedDate;
 }
+
+
+const addonParsers = {
+    display: /\[chronodisplay\](.*?)\[\/chronodisplay\]/,
+    date: /\[chronodate\]y:\s*(\d+),\s*m:\s*(\d+),\s*d:\s*(\d+)\[\/chronodate\]/,
+    serial: /\[chronoserial\](.*?)\[\/chronoserial\]/,
+    quest: /\[chronoquest\](.*?)\[\/chronoquest\]/
+};
+function parseAddons(message) {
+    const addons = {};
+    for (const addonName in addonParsers) {
+        const match = message.match(addonParsers[addonName]);
+        if (match) {
+            switch (addonName) {
+                case 'display':
+                    addons[addonName] = match[1];
+                    break;
+                case 'date':
+                    addons[addonName] = {
+                        y: parseInt(match[1]),
+                        m: parseInt(match[2]),
+                        d: parseInt(match[3])
+                    };
+                    break;
+                case 'serial':
+                    addons[addonName] = {
+                        is_serial: true,
+                        serial_first: parseInt(match[1])
+                    };
+                    break;
+                case 'quest':
+                    try {
+                        addons[addonName] = JSON.parse(match[1].trim());
+                    } catch (error) {
+                        console.warn("Не удалось разобрать значение [chronoquest]:", match[1].trim());
+                        addons[addonName] = match[1].trim(); //храним как строку, если json не разобран
+                    }
+                    break;
+                default:
+                    addons[addonName] = match[1];
+                    break;
+            }
+        }
+    }
+    return addons;
+}
+
+
+
 
 async function fetchData(url) {
   if (DEBUG_MODE) console.log(`Fetching: ${url}`);
@@ -145,65 +202,50 @@ async function getPosts(topicIds) {
 }
 
 async function processForum(forumId, activeFlag) {
-  const topics = await getTopics([forumId]);
-  const topicIds = topics.map(topic => topic.id);
-  const posts = await getPosts(topicIds);
+    const topics = await getTopics([forumId]);
+    const topicIds = topics.map(topic => topic.id);
+    const posts = await getPosts(topicIds);
 
-  const processedTopics = topics.map(topic => ({
-    ...topic,
-    posts_count: 0,
-    users: [],
-    flags: { active: activeFlag, done: !activeFlag, full_date: false },
-    addon: {
-      display: null,
-      date: { y: 0, m: 0, d: 0 },
-      is_serial: false,
-      serial_first: 0
+    const processedTopics = topics.map(topic => ({
+        ...topic,
+        posts_count: 0,
+        users: [],
+        flags: {active: activeFlag, done: !activeFlag, full_date: false},
+        addon: {
+            display: null,
+            date: {y: 0, m: 0, d: 0},
+            is_serial: false,
+            serial_first: 0,
+            quest: false // добавлено поле quest
+        }
+    }));
+
+    // обработка постов
+    for (const post of posts) {
+        const topicIndex = processedTopics.findIndex(t => t.id === post.topic_id);
+        if (topicIndex !== -1) {
+            processedTopics[topicIndex].posts_count++;
+
+            let user_data = [post.user_id, post.username];
+            const nickRegex = /\[nick\](.*?)\[\/nick\]/;
+            const nickMatch = post.message.match(nickRegex);
+            if (nickMatch) {
+                user_data.push(nickMatch[1].trim());
+                console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
+            }
+            processedTopics[topicIndex].users.push(user_data);
+
+            if (post.id === processedTopics[topicIndex].first_post) {
+                const addons = parseAddons(post.message);
+                processedTopics[topicIndex].addon = {...processedTopics[topicIndex].addon, ...addons};
+            }
+        } else {
+            console.error("Тема не найдена для поста:", post);
+        }
     }
-  }));
 
-  // обработка постов
-  for (const post of posts) {
-    const topicIndex = processedTopics.findIndex(t => t.id === post.topic_id);
-    if (topicIndex !== -1) {
-      processedTopics[topicIndex].posts_count++;
-
-      let user_data = [post.user_id, post.username];
-      const nickRegex = /\[nick\](.*?)\[\/nick\]/;
-      const nickMatch = post.message.match(nickRegex);
-      if (nickMatch) {
-        user_data.push(nickMatch[1].trim());
-        console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
-      }
-      processedTopics[topicIndex].users.push(user_data);
-
-      if (post.id === processedTopics[topicIndex].first_post) {
-        const addonRegex = /\[chronodisplay\](.*?)\[\/chronodisplay\]/;
-        const addonMatch = post.message.match(addonRegex);
-        if (addonMatch) {
-          processedTopics[topicIndex].addon.display = addonMatch[1];
-        }
-
-        const dateRegexAddon = /\[chronodate\]y:\s*(\d+),\s*m:\s*(\d+),\s*d:\s*(\d+)\[\/chronodate\]/;
-        const dateMatchAddon = post.message.match(dateRegexAddon);
-        if (dateMatchAddon) {
-          processedTopics[topicIndex].addon.date = { y: parseInt(dateMatchAddon[1]), m: parseInt(dateMatchAddon[2]), d: parseInt(dateMatchAddon[3]) };
-        }
-
-        const serialRegexAddon = /\[chronoserial\](.*?)\[\/chronoserial\]/;
-        const serialMatchAddon = post.message.match(serialRegexAddon);
-        if (serialMatchAddon) {
-          processedTopics[topicIndex].addon.is_serial = true;
-          processedTopics[topicIndex].addon.serial_first = parseInt(serialMatchAddon[1]);
-        }
-      }
-    } else {
-      console.error("Тема не найдена для поста:", post);
-    }
-  }
-
-  // date parsing
-  for (const topic of processedTopics) {
+    // date parsing - вызов отдельной функции
+    for (const topic of processedTopics) {
         const parsedDate = parseDate(topic.subject);
         if (parsedDate) {
             topic.date = parsedDate;
@@ -213,7 +255,7 @@ async function processForum(forumId, activeFlag) {
         }
     }
 
-  return processedTopics;
+    return processedTopics;
 }
 
 async function main() {
