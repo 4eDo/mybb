@@ -37,14 +37,14 @@ function parseDate(subject) {
     //Регулярные выражения для разных форматов даты
     const dateRegexes = [
         //Формат ГГГГ-ММ-ДД
-        /(?:(\d{4})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2}))/i,
+        /(?:(\d{3,})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2}))/i,
         //Формат ДД.ММ.ГГГГ
-        /(?:(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{4}))/i,
+        /(?:(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{3,}))/i,
         //Формат ГГГГ-ММ
-        /(?:(\d{4})\s*[-.\/]\s*([a-zA-Zа-яА-Я]+))/i,
-        /(?:(\d{4})\s*[-.\/]\s*(\d{1,2}))/i,
+        /(?:(\d{3,})\s*[-.\/]\s*([a-zA-Zа-яА-Я]+))/i,
+        /(?:(\d{3,})\s*[-.\/]\s*(\d{1,2}))/i,
         //Формат ММ-ГГГГ
-        /(?:(\d{1,2})\s*[-.\/]\s*(\d{4}))/i
+        /(?:(\d{1,2})\s*[-.\/]\s*(\d{3,}))/i
     ];
 
     for (const regex of dateRegexes) {
@@ -87,7 +87,7 @@ function parseDate(subject) {
 
     // 4. Проверка только года
     if (!dateParsed) {
-        const yearOnlyRegex = /(\d{4})/;
+        const yearOnlyRegex = /(\d{1,})/;
         const yearOnlyMatch = subject.match(yearOnlyRegex);
         if (yearOnlyMatch) {
             const year = parseInt(yearOnlyMatch[1]);
@@ -100,15 +100,13 @@ function parseDate(subject) {
   
     // 5. Дополнительная проверка для формата "MM.YYYY-MM.YYYY" - берём только первую дату
     if (!dateParsed) {
-        const complexDateRegex = /(\d{1,2})\.(\d{4})-(\d{1,2})\.(\d{4})/i;
+        const complexDateRegex = /(\d{1,2})\.(\d{3,})-(\d{1,2})\.(\d{3,})/i;
         const complexDateMatch = subject.match(complexDateRegex);
         if (complexDateMatch) {
             const month = parseInt(complexDateMatch[1]);
             const year = parseInt(complexDateMatch[2]);
-            if (month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
-                parsedDate = { y: year, m: month, d: 0 };
-                dateParsed = true;
-            }
+            parsedDate = { y: year, m: month, d: 0 };
+            dateParsed = true;
         }
     }
 
@@ -235,12 +233,12 @@ async function processForum(forumId, activeFlag) {
                 console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
             }
             processedTopics[topicIndex].users.push(user_data);
-
             if (post.id === processedTopics[topicIndex].first_post) {
                 const addons = parseAddons(post.message);
                 processedTopics[topicIndex].addon = {...processedTopics[topicIndex].addon, ...addons};
                 if(!processedTopics[topicIndex].addon.description) processedTopics[topicIndex].description = post.message;
             }
+            processedTopics[topicIndex].flags.descr = processedTopics[topicIndex].first_post != 0;
         } else {
             console.error("Тема не найдена для поста:", post);
         }
