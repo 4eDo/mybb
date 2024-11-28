@@ -122,12 +122,14 @@ const addonParsers = {
 };
 function parseAddons(message) {
     const addons = {};
+    let hasMatch = false;
     for (const addonName in addonParsers) {
         const match = message.match(addonParsers[addonName]);
         if (match) {
             switch (addonName) {
                 case 'display':
                     addons[addonName] = match[1];
+                    hasMatch = true;
                     break;
                 case 'date':
                     addons[addonName] = {
@@ -135,12 +137,14 @@ function parseAddons(message) {
                         m: parseInt(match[2]),
                         d: parseInt(match[3])
                     };
+                    hasMatch = true;
                     break;
                 case 'serial':
                     addons[addonName] = {
                         is_serial: true,
                         serial_first: parseInt(match[1])
                     };
+                    hasMatch = true;
                     break;
                 case 'quest':
                     try {
@@ -149,14 +153,17 @@ function parseAddons(message) {
                         console.warn("Не удалось разобрать значение [chronoquest]:", match[1].trim());
                         addons[addonName] = match[1].trim(); //храним как строку, если json не разобран
                     }
+                
+                    hasMatch = true;
                     break;
                 default:
                     addons[addonName] = match[1];
+                    hasMatch = true;
                     break;
             }
         }
     }
-    return addons;
+    return hasMatch ? addons : false;
 }
 
 
@@ -230,12 +237,16 @@ async function processForum(forumId, activeFlag) {
             const nickMatch = post.message.match(nickRegex);
             if (nickMatch) {
                 user_data.push(nickMatch[1].trim());
-                console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
+                // console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
             }
             processedTopics[topicIndex].users.push(user_data);
-            if (post.id === processedTopics[topicIndex].first_post) {
+            let correctFirstPost = processedTopics[topicIndex].first_post != 0 && processedTopics[topicIndex].first_post < post.id;
+            if(!correctFirstPost) console.log("Bad first post for tid=" + topicIndex);
+            if (post.id === processedTopics[topicIndex].first_post || !correctFirstPost) {
                 const addons = parseAddons(post.message);
-                processedTopics[topicIndex].addon = {...processedTopics[topicIndex].addon, ...addons};
+                if(addons) processedTopics[topicIndex].addon = {...processedTopics[topicIndex].addon, ...addons};
+                if(!correctFirstPost) processedTopics[topicIndex].first_post = post.id;
+                if(!correctFirstPost) console.log("New first post " + post.id + " for tid=" + topicIndex);
                 if(!processedTopics[topicIndex].addon.description) processedTopics[topicIndex].description = post.message;
             }
             processedTopics[topicIndex].flags.descr = processedTopics[topicIndex].first_post != 0;
