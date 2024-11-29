@@ -28,9 +28,33 @@ function hideTemplateWindow() {
 	if (needHideNavlinks) navlinks.style.display = 'block';
 }
 
+function ajaxFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest();
+    xhr.open(options.method || 'GET', url);
+    xhr.responseType = options.responseType || 'text';
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve({
+          arrayBuffer: () => xhr.response,
+          text: () => xhr.responseText,
+          status: xhr.status,
+          ok: xhr.ok
+        });
+      } else {
+        reject(new Error(`Ошибка запроса: ${xhr.status} ${xhr.statusText}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Ошибка сети'));
+
+    xhr.send(options.body);
+  });
+}
 async function fetchAndParseTemplates() {
 	try {
-		let response = await fetch(url);
+		let response = await ajaxFetch(url, { responseType: 'arraybuffer' });
 		let buffer = await response.arrayBuffer();
 		let decoder = new TextDecoder('windows-1251');
 		let htmlText = decoder.decode(buffer);
