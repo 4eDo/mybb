@@ -30,36 +30,32 @@ function hideTemplateWindow() {
 
 function ajaxFetch(url, options = {}) {
   return new Promise((resolve, reject) => {
-    let xhr = new XMLHttpRequest();
-    xhr.open(options.method || 'GET', url);
-    xhr.responseType = options.responseType || 'text';
-
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
+    $.ajax({
+      url: url,
+      method: options.method || 'GET',
+      dataType: 'text',
+      success: (data, textStatus, jqXHR) => {
         resolve({
-          arrayBuffer: () => xhr.response,
-          text: () => xhr.responseText,
-          status: xhr.status,
-          ok: xhr.ok
+          text: () => data,
+          status: jqXHR.status,
+          ok: jqXHR.status >= 200 && jqXHR.status < 300
         });
-      } else {
-        reject(new Error(`Ошибка запроса: ${xhr.status} ${xhr.statusText}`));
+      },
+      error: (jqXHR, textStatus, errorThrown) => {
+        reject(new Error(`Ошибка запроса: ${jqXHR.status} ${jqXHR.statusText}`));
       }
-    };
-
-    xhr.onerror = () => reject(new Error('Ошибка сети'));
-
-    xhr.send(options.body);
+    });
   });
 }
 async function fetchAndParseTemplates() {
 	try {
-		let response = await ajaxFetch(url, { responseType: 'arraybuffer' });
-		let buffer = await response.arrayBuffer();
-		let decoder = new TextDecoder('windows-1251');
-		let htmlText = decoder.decode(buffer);
-		// console.log("HTML Text:", htmlText);
-		let parser = new DOMParser();
+        let response = await ajaxFetch(url, { responseType: 'text' });
+        
+        let htmlText = response.text();
+        
+        // console.log("HTML Text:", htmlText);
+        
+        let parser = new DOMParser();
 		let doc = parser.parseFromString(htmlText, 'text/html');
 		let userTemplates = doc.getElementById('userTemplates');
 		// console.log("User Templates Block:", userTemplates);
