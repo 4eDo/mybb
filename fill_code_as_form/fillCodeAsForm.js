@@ -3,7 +3,7 @@ console.log("%c~~ Скрипт для заполнения шаблонов че
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
 // URL страницы с шаблонами
-const url = '/pages/_templates_user';
+const url = '/pages/_templates_user/?nohead';
 
 let needHideNavlinks = typeof NEED_HIDE_NAVLINKS !== 'undefined' ? NEED_HIDE_NAVLINKS : true;
 
