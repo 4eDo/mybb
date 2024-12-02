@@ -1,4 +1,4 @@
-const FORUM_ID = 31;
+const FORUM_WITH_TOPICS = 31;
 
 const TOPICS_PER_REQUEST = 100;
 const POSTS_PER_REQUEST = 1;
@@ -51,7 +51,7 @@ function fetchData(url) {
 }
 
 async function getTopics(forumIds) {
-  const url = `/api.php?method=topic.get&forum_id=${FORUM_ID}&fields=id,subject,first_post&limit=${TOPICS_PER_REQUEST}`;
+  const url = `/api.php?method=topic.get&forum_id=${FORUM_ID}&fields=id,subject&limit=${TOPICS_PER_REQUEST}`;
   const data = await fetchData(url);
   return data?.response || [];
 }
@@ -62,7 +62,7 @@ async function getPosts(topicIds) {
   let skip = 0;
   let allPosts = [];
   while (true) {
-    const url = `/api.php?method=post.get&topic_id=${topicIds.join(',')}&fields=id,user_id,username,message,topic_id&limit=${POSTS_PER_REQUEST}&skip=${skip}`;
+    const url = `/api.php?method=post.get&topic_id=${topicIds.join(',')}&fields=id,username,message,topic_id&limit=${POSTS_PER_REQUEST}&skip=${skip}&sort_by=id&sort_dir=asc`;
     const data = await fetchData(url);
     if (!data?.response) break;
     allPosts.push(...data.response);
@@ -78,57 +78,43 @@ async function processForum(forumId, activeFlag) {
     const posts = await getPosts(topicIds);
 
     const processedTopics = topics.map(topic => ({
-        ...topic,
-        posts_count: 0,
-        users: [],
-        flags: {active: activeFlag, done: !activeFlag, full_date: false},
-        addon: {
-            display: null,
-            date: {y: 0, m: 0, d: 0},
-            is_serial: false,
-            serial_first: 0,
-            quest: false,
-            description: ""
-        }
+        tid: topic.id,
+        subject: topic.subject,
+        fandom: {
+            include: [],
+            exclude: []
+        },
+        setting: {
+                include: [],
+                exclude: []
+            },
+        sex: "",
+        relations: {
+                include: [],
+                exclude: []
+            },
+        age: {
+            from: 18,
+                to: 25
+        },
+        tags: {
+                include: [],
+                exclude: []
+            },
+        author: ""
     }));
 
     // обработка постов
     for (const post of posts) {
         const topicIndex = processedTopics.findIndex(t => t.id === post.topic_id);
         if (topicIndex !== -1) {
-            processedTopics[topicIndex].posts_count++;
-
-            let user_data = [post.user_id, post.username];
-            const nickRegex = /\[nick\](.*?)\[\/nick\]/;
-            const nickMatch = post.message.match(nickRegex);
-            if (nickMatch) {
-                user_data.push(nickMatch[1].trim());
-                // console.log(`Post ${post.id} in topic ${post.topic_id} contains [nick] tag: ${nickMatch[1].trim()}`);
-            }
-            processedTopics[topicIndex].users.push(user_data);
-            let correctFirstPost = processedTopics[topicIndex].first_post != 0 && processedTopics[topicIndex].first_post < post.id;
-            if(!correctFirstPost) console.log("Bad first post for tid=" + topicIndex);
+            
             if (post.id === processedTopics[topicIndex].first_post || !correctFirstPost) {
                 const addons = parseAddons(post.message);
-                if(addons) processedTopics[topicIndex].addon = {...processedTopics[topicIndex].addon, ...addons};
-                if(!correctFirstPost) processedTopics[topicIndex].first_post = post.id;
-                if(!correctFirstPost) console.log("New first post " + post.id + " for tid=" + topicIndex);
-                if(!processedTopics[topicIndex].addon.description) processedTopics[topicIndex].description = post.message;
+                if(addons) processedTopics[topicIndex] = {...processedTopics[topicIndex], ...addons};
             }
-            processedTopics[topicIndex].flags.descr = processedTopics[topicIndex].first_post != 0;
         } else {
             console.error("Тема не найдена для поста:", post);
-        }
-    }
-
-    // date parsing - вызов отдельной функции
-    for (const topic of processedTopics) {
-        const parsedDate = parseDate(topic.subject);
-        if (parsedDate) {
-            topic.date = parsedDate;
-            topic.flags.full_date = parsedDate.d !== 0;
-        } else {
-            console.warn("Не удалось разобрать дату в теме:", topic.subject);
         }
     }
 
