@@ -319,13 +319,10 @@ function searchInBlocks() {
 
   const detailsElements = document.querySelectorAll('details');
 
-  detailsElements.forEach(details => {
-    details.classList.remove('success', 'bad', 'notFound');
-  });
-
   results.forEach(ticket => {
     const details = document.querySelector(`.ticket-${ticket.tid}`);
     if (!details) return;
+    details.classList.remove('success', 'bad', 'notFound');
 
     const isBad = (value, excludeList) => excludeList.some(excludeItem => value.toLowerCase().includes(excludeItem.toLowerCase()));
 
