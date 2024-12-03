@@ -300,6 +300,14 @@ function handleTypeChange() {
       $(".findPlayer").show();
       break;
   };
+  $('.catalog-list').each(function () {
+    const catalogList = $(this);
+    catalogList.show();
+    const visibleTickets = catalogList.find('.ticket:visible');
+    if (visibleTickets.length === 0) {
+      catalogList.hide();
+    }
+  });
 }
 
 function searchInBlocks() {
@@ -312,28 +320,28 @@ function searchInBlocks() {
   const detailsElements = document.querySelectorAll('details');
 
   detailsElements.forEach(details => {
-      details.classList.remove('success', 'bad', 'notFound');
+    details.classList.remove('success', 'bad', 'notFound');
   });
 
   results.forEach(ticket => {
-      const details = document.querySelector(`.ticket-${ticket.tid}`);
-      if (!details) return;
+    const details = document.querySelector(`.ticket-${ticket.tid}`);
+    if (!details) return;
 
-      const isBad = (value, excludeList) => excludeList.some(excludeItem => value.toLowerCase().includes(excludeItem.toLowerCase()));
+    const isBad = (value, excludeList) => excludeList.some(excludeItem => value.toLowerCase().includes(excludeItem.toLowerCase()));
 
-      const matchesFandom = !fandom || (ticket.fandom.include.some(item => item.toLowerCase().includes(fandom)) && !isBad(fandom, ticket.fandom.exclude));
-      const matchesSetting = !setting || (ticket.setting.include.some(item => item.toLowerCase().includes(setting)) && !isBad(setting, ticket.setting.exclude));
-      const matchesSex = !sex || ticket.sex.toLowerCase().includes(sex);
-      const matchesRelations = !relations || (ticket.relations.include.some(item => item.toLowerCase().includes(relations)) && !isBad(relations, ticket.relations.exclude));
-      const matchesTags = !tags || (ticket.tags.include.some(item => item.toLowerCase().includes(tags)) && !isBad(tags, ticket.tags.exclude));
+    const matchesFandom = !fandom || (ticket.fandom.include.some(item => item.toLowerCase().includes(fandom)) && !isBad(fandom, ticket.fandom.exclude));
+    const matchesSetting = !setting || (ticket.setting.include.some(item => item.toLowerCase().includes(setting)) && !isBad(setting, ticket.setting.exclude));
+    const matchesSex = !sex || ticket.sex.toLowerCase().includes(sex);
+    const matchesRelations = !relations || (ticket.relations.include.some(item => item.toLowerCase().includes(relations)) && !isBad(relations, ticket.relations.exclude));
+    const matchesTags = !tags || (ticket.tags.include.some(item => item.toLowerCase().includes(tags)) && !isBad(tags, ticket.tags.exclude));
 
-      if (isBad(fandom, ticket.fandom.exclude) || isBad(setting, ticket.setting.exclude) || isBad(relations, ticket.relations.exclude) || isBad(tags, ticket.tags.exclude)) {
-          details.classList.add('bad');
-      } else if (matchesFandom && matchesSetting && matchesSex && matchesRelations && matchesTags) {
-          details.classList.add('success');
-      } else {
-          details.classList.add('notFound');
-      }
+    if (isBad(fandom, ticket.fandom.exclude) || isBad(setting, ticket.setting.exclude) || isBad(relations, ticket.relations.exclude) || isBad(tags, ticket.tags.exclude)) {
+      details.classList.add('bad');
+    } else if (matchesFandom && matchesSetting && matchesSex && matchesRelations && matchesTags) {
+      details.classList.add('success');
+    } else {
+      details.classList.add('notFound');
+    }
   });
 }
 
@@ -346,7 +354,7 @@ function resetFilters() {
 
   const detailsElements = document.querySelectorAll('.ticket');
   detailsElements.forEach(details => {
-      details.classList.remove('success', 'bad', 'notFound');
+    details.classList.remove('success', 'bad', 'notFound');
   });
 }
 
@@ -370,6 +378,7 @@ async function init() {
     $(this).addClass("active");
     const sortBy = $(this).data("sort");
     renderCatalog(results, sortBy);
+    handleTypeChange();
     searchInBlocks();
   });
 
