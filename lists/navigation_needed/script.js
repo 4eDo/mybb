@@ -10,7 +10,7 @@ const TARGET_FORUMS = {
  */
 const TOPICS_PER_REQUEST = 100;
 const POSTS_PER_REQUEST = 100;
-
+var results;
 const addonParsers = {
   catFandomIncl: /\[catFandomIncl\](.*?)\[\/catFandomIncl\]/,
   catFandomExcl: /\[catFandomExcl\](.*?)\[\/catFandomExcl\]/,
@@ -365,7 +365,7 @@ async function init() {
   );
 
   const splitedResults = await Promise.all(promises);
-  const results = splitedResults.flat();
+  results = splitedResults.flat();
   console.log(results);
 
   document.getElementById('searchInput_type').value = searchMode;
