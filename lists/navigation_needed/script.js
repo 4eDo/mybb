@@ -47,7 +47,7 @@ function parseAddons(message) {
       content = extractTextUsingDOMParser(message, addonName);
     }
     if(content) {
-      let addonValue = singleValueAddons.includes(addonName) ? content : content.split(",");
+      let addonValue = singleValueAddons.includes(addonName) ? content : content.split(", ");
       switch(addonName) {
         case "catFandomIncl": addons["fandom"]["include"] = addonValue; break;
         case "catFandomExcl": addons["fandom"]["exclude"] = addonValue; break;
