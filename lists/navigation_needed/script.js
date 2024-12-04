@@ -1,6 +1,7 @@
 /* В каких форумах ищем */
 const TARGET_FORUMS = {
-  "findRole": 31,
+  // "findRole": 31,
+  "findRole": 25, // тест
   "findPlayer": 32
 };
 
