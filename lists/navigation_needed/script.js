@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.6");
+console.log("v0.7");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -337,7 +337,7 @@ function searchInBlocks() {
     const matchesTags = !tags || (ticket.tags.include.some(item => item.toLowerCase().includes(tags)) && !isBad(tags, ticket.tags.exclude));
 
     if (!fandom && !setting && !sex && !relations && !tags) {
-      details.classList.add('success');
+      // Ничего не делаем
     } else if (isBad(fandom, ticket.fandom.exclude) || isBad(setting, ticket.setting.exclude) || isBad(relations, ticket.relations.exclude) || isBad(tags, ticket.tags.exclude)) {
       details.classList.add('bad');
     } else if (matchesFandom && matchesSetting && matchesSex && matchesRelations && matchesTags) {
