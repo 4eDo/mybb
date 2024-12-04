@@ -11,6 +11,8 @@ const TARGET_FORUMS = {
 const TOPICS_PER_REQUEST = 100;
 const POSTS_PER_REQUEST = 100;
 
+var results;
+
 const addonParsers = {
   catFandomIncl: /\[catFandomIncl\](.*?)\[\/catFandomIncl\]/,
   catFandomExcl: /\[catFandomExcl\](.*?)\[\/catFandomExcl\]/,
@@ -365,15 +367,16 @@ async function init() {
   );
 
   const splitedResults = await Promise.all(promises);
-  const results = splitedResults.flat();
+  results = splitedResults.flat();
   console.log(results);
 
   document.getElementById('searchInput_type').value = searchMode;
 
   $("body").on("click", ".sort-button", function () {
-    $(".sort-button").removeClass("active");
-    $(this).addClass("active");
+    $(".sort-button").removeClass("isactive");
+    $(this).addClass("isactive");
     const sortBy = $(this).data("sort");
+    console.log(results);
     renderCatalog(results, sortBy);
     handleTypeChange();
     searchInBlocks();
