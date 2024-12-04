@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.12");
+console.log("v0.13");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -29,7 +29,14 @@ const addonParsers_bb = {
 };
 const singleValueAddons = ["catSex", "catAgeFrom", "catAgeTo"];
 function parseAddons(message) {
-  const addons = {};
+  const addons = {
+    fandom: { include: null, exclude: null },
+    setting: { include: null, exclude: null },
+    relations: { include: null, exclude: null },
+    age: { from: null, to: null },
+    tags: { include: null, exclude: null },
+    sex: null
+  };
   let hasMatch = false;
   for (const addonName in addonParsers_bb) {
     const match = message.match(addonParsers_bb[addonName]);
