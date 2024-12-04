@@ -32,7 +32,7 @@ function parseAddons(message) {
   const addons = {};
   let hasMatch = false;
   for (const addonName in addonParsers_bb) {
-    const match = message.match(addonParsers_html[bb]);
+    const match = message.match(addonParsers_bb[addonName]);
     if (match) {
       addons[addonName] = match[1];
       hasMatch = true;
