@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.4");
+console.log("v0.5");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -375,6 +375,7 @@ async function init() {
   document.getElementById('searchInput_type').value = searchMode;
 
   renderCatalog(results, "setting");
+  handleTypeChange();
   
   $("body").on("click", ".sort-button", function () {
     $(".sort-button").removeClass("isactive");
