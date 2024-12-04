@@ -346,14 +346,10 @@ function searchInBlocks() {
   const relations = document.getElementById('searchInput_relations').value.toLowerCase();
   const tags = document.getElementById('searchInput_tags').value.toLowerCase();
 
-
   results.forEach(ticket => {
     const details = document.querySelectorAll(`.ticket-${ticket.tid}`);
     if (!details) return;
-    details.forEach(detail => {
-      detail.classList.remove('success', 'bad', 'notFound');
-    });
-
+    
     const isBad = (value, excludeList) => excludeList.some(excludeItem => value.toLowerCase().includes(excludeItem.toLowerCase()));
 
     const matchesFandom = !fandom || (ticket.fandom.include.some(item => item.toLowerCase().includes(fandom)) && !isBad(fandom, ticket.fandom.exclude));
@@ -362,15 +358,19 @@ function searchInBlocks() {
     const matchesRelations = !relations || (ticket.relations.include.some(item => item.toLowerCase().includes(relations)) && !isBad(relations, ticket.relations.exclude));
     const matchesTags = !tags || (ticket.tags.include.some(item => item.toLowerCase().includes(tags)) && !isBad(tags, ticket.tags.exclude));
 
-    if (!fandom && !setting && !sex && !relations && !tags) {
-      // Ничего не делаем
-    } else if (isBad(fandom, ticket.fandom.exclude) || isBad(setting, ticket.setting.exclude) || isBad(relations, ticket.relations.exclude) || isBad(tags, ticket.tags.exclude)) {
-      details.classList.add('bad');
-    } else if (matchesFandom && matchesSetting && matchesSex && matchesRelations && matchesTags) {
-      details.classList.add('success');
-    } else {
-      details.classList.add('notFound');
-    }
+    
+    details.forEach(detail => {
+      detail.classList.remove('success', 'bad', 'notFound');
+      if (!fandom && !setting && !sex && !relations && !tags) {
+        // Ничего не делаем
+      } else if (isBad(fandom, ticket.fandom.exclude) || isBad(setting, ticket.setting.exclude) || isBad(relations, ticket.relations.exclude) || isBad(tags, ticket.tags.exclude)) {
+        detail.classList.add('bad');
+      } else if (matchesFandom && matchesSetting && matchesSex && matchesRelations && matchesTags) {
+        detail.classList.add('success');
+      } else {
+        detail.classList.add('notFound');
+      }
+    });
   });
 }
 
