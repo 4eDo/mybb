@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.14");
+console.log("v0.16");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -226,13 +226,12 @@ function renderCatalog(data, sortBy) {
         break;
     }
 
-    if (!hasValue && (ticket.fandom.include.length > 0 || ticket.setting.include.length > 0 || ticket.relations.include.length > 0 || ticket.tags.include.length > 0 || ticket.sex)) {
+    if (!hasValue) {
       unspecifiedTickets[sortBy] = unspecifiedTickets[sortBy] || [];
       unspecifiedTickets[sortBy].push(ticket);
     }
 
   });
-
 
   for (const key in sortedTickets) {
     sortedTickets[key].sort((a, b) => a.subject.localeCompare(b.subject));
@@ -243,7 +242,6 @@ function renderCatalog(data, sortBy) {
     sortedTickets["Не указано"] = sortedTickets["Не указано"] || [];
     sortedTickets["Не указано"].push(...unspecifiedTickets[key]);
   }
-
 
   const sortedKeys = Object.keys(sortedTickets)
     .sort((a, b) => {
