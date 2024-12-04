@@ -54,7 +54,7 @@ catFandomIncl[/]:i, catFandomExcl[/]:i, catSettingIncl[/]:i, catSettingExcl[/]:i
 		box-shadow: var(--shadow_secondary);
 	}
 
-	#catalog-box, #example {
+	#catalogPage {
 		--shadow_primary: inset 0px 0px 10px 0px rgb(var(--primary400));
 		--shadow_secondary: inset 0px 0px 10px 0px rgb(var(--secondary400));
 		--margin10: 10px;
@@ -68,78 +68,80 @@ catFandomIncl[/]:i, catFandomExcl[/]:i, catSettingIncl[/]:i, catSettingExcl[/]:i
 	}
 </style>
 
-<details id="example">
-	<summary>Обозначения</summary>
-	<ul>
-		<li class="ticket-your">ВАША заявка</li>
-		<li class="findRole">Поиск роли</li>
-		<li class="findPlayer">Поиск соигрока</li>
-		<li class="success">Подходящая заявка</li>
-		<li class="notFound">Статус заявки не определён</li>
-		<li class="bad">Заявка не подходит</li>
-	</ul>
-</details>
-
-<div class="fs-box filter-box inline">
-	<p class="infofield">Режим отображения позволяет выбрать, какие заявки показывать.</p>
-	<p class="selectfield">
-		<label for="searchInput_type">Тип:</label><br>
-		<select id="searchInput_type">
-			<option value="all">Все</option>
-			<option value="findRole">Поиск роли</option>
-			<option value="findPlayer">Поиск соигрока</option>
-		</select>
-	</p>
-</div>
-
-<div class="fs-box filter-box inline">
-	<p class="infofield">Заявки, соответствующие критериям поиска, будут выделены. Остальные станут менее заметны. Для поиска нажмите кнопку "Найти".</p>
-	<p class="selectfield">
-		<label for="searchInput_fandom">Фандом:</label><br>
-		<input type="text" class="searchInput" id="searchInput_fandom" placeholder="Введите текст" list="fandomList">
-		<datalist id="fandomList">
-	</p>
-	<p class="selectfield">
-		<label for="searchInput_setting">Сеттинг:</label><br>
-		<input type="text" class="searchInput" id="searchInput_setting" placeholder="Введите текст" list="settingList">
-		<datalist id="settingList">
-	</p>
-	<p class="selectfield">
-		<label for="searchInput_sex">Пол:</label><br>
-		<input type="text" class="searchInput" id="searchInput_sex" placeholder="Введите текст" list="sexList">
-		<datalist id="sexList">
-	</p>
-	<p class="selectfield">
-		<label for="searchInput_relations">Отношения:</label><br>
-		<input type="text" class="searchInput" id="searchInput_relations" placeholder="Введите текст" list="relationsList">
-		<datalist id="relationsList">
-	</p>
-	<p class="selectfield">
-		<label for="searchInput_tags">Теги:</label><br>
-		<input type="text" class="searchInput" id="searchInput_tags" placeholder="Введите текст" list="tagsList">
-		<datalist id="tagsList">
-	</p>
-	<br>
-	<p class="selectfield">
-		<button type="button" class="button submit" name="submit" onclick="searchInBlocks()">Найти</button>
-		<button type="button" class="button preview" name="preview" onclick="resetFilters()">Сбросить фильтры</button>
-	</p>
-</div>
-
-
-<div class="sort-box">
-	<div id="profilenav">
-		<h2><span>Выберите сортировку:</span></h2>
+<div  id="catalogPage">
+	<details>
+		<summary>Обозначения</summary>
 		<ul>
-			<li class="isactive sort-button" data-sort="fandom"><a href="javascript:void(0);">По&nbsp;фандому</a></li>
-			<li class="sort-button" data-sort="setting"><a href="javascript:void(0);">По&nbsp;сеттингу</a></li>
-			<li class="sort-button" data-sort="sex"><a href="javascript:void(0);">По&nbsp;полу</a></li>
-			<li class="sort-button" data-sort="relations"><a href="javascript:void(0);">По&nbsp;типу&nbsp;отношений</a></li>
-			<li class="sort-button" data-sort="tags"><a href="javascript:void(0);">По&nbsp;тегам</a></li>
+			<li class="ticket-your">ВАША заявка</li>
+			<li class="findRole">Поиск роли</li>
+			<li class="findPlayer">Поиск соигрока</li>
+			<li class="success">Подходящая заявка</li>
+			<li class="notFound">Статус заявки не определён</li>
+			<li class="bad">Заявка не подходит</li>
 		</ul>
+	</details>
+	
+	<div class="fs-box filter-box inline">
+		<p class="infofield">Режим отображения позволяет выбрать, какие заявки показывать.</p>
+		<p class="selectfield">
+			<label for="searchInput_type">Тип:</label><br>
+			<select id="searchInput_type">
+				<option value="all">Все</option>
+				<option value="findRole">Поиск роли</option>
+				<option value="findPlayer">Поиск соигрока</option>
+			</select>
+		</p>
 	</div>
+	
+	<div class="fs-box filter-box inline">
+		<p class="infofield">Заявки, соответствующие критериям поиска, будут выделены. Остальные станут менее заметны. Для поиска нажмите кнопку "Найти".</p>
+		<p class="selectfield">
+			<label for="searchInput_fandom">Фандом:</label><br>
+			<input type="text" class="searchInput" id="searchInput_fandom" placeholder="Введите текст" list="fandomList">
+			<datalist id="fandomList">
+		</p>
+		<p class="selectfield">
+			<label for="searchInput_setting">Сеттинг:</label><br>
+			<input type="text" class="searchInput" id="searchInput_setting" placeholder="Введите текст" list="settingList">
+			<datalist id="settingList">
+		</p>
+		<p class="selectfield">
+			<label for="searchInput_sex">Пол:</label><br>
+			<input type="text" class="searchInput" id="searchInput_sex" placeholder="Введите текст" list="sexList">
+			<datalist id="sexList">
+		</p>
+		<p class="selectfield">
+			<label for="searchInput_relations">Отношения:</label><br>
+			<input type="text" class="searchInput" id="searchInput_relations" placeholder="Введите текст" list="relationsList">
+			<datalist id="relationsList">
+		</p>
+		<p class="selectfield">
+			<label for="searchInput_tags">Теги:</label><br>
+			<input type="text" class="searchInput" id="searchInput_tags" placeholder="Введите текст" list="tagsList">
+			<datalist id="tagsList">
+		</p>
+		<br>
+		<p class="selectfield">
+			<button type="button" class="button submit" name="submit" onclick="searchInBlocks()">Найти</button>
+			<button type="button" class="button preview" name="preview" onclick="resetFilters()">Сбросить фильтры</button>
+		</p>
+	</div>
+	
+	
+	<div class="sort-box">
+		<div id="profilenav">
+			<h2><span>Выберите сортировку:</span></h2>
+			<ul>
+				<li class="isactive sort-button" data-sort="fandom"><a href="javascript:void(0);">По&nbsp;фандому</a></li>
+				<li class="sort-button" data-sort="setting"><a href="javascript:void(0);">По&nbsp;сеттингу</a></li>
+				<li class="sort-button" data-sort="sex"><a href="javascript:void(0);">По&nbsp;полу</a></li>
+				<li class="sort-button" data-sort="relations"><a href="javascript:void(0);">По&nbsp;типу&nbsp;отношений</a></li>
+				<li class="sort-button" data-sort="tags"><a href="javascript:void(0);">По&nbsp;тегам</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="catalog-box"></div>
 </div>
-
-<div id="catalog-box"></div>
 <script type="text/javascript" src="https://4edo.github.io/mybb/lists/navigation_needed/script.js"></script>
 <script></script>
