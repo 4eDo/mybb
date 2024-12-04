@@ -54,7 +54,7 @@ function parseAddons(message) {
         case "catSettingIncl": addons["setting"]["include"] = addonValue; break;
         case "catSettingExcl": addons["setting"]["exclude"] = addonValue; break;
         case "catSex": addons["sex"] = addonValue; break;
-        case "catRelationsIncl": addons["elations"]["include"] = addonValue; break;
+        case "catRelationsIncl": addons["relations"]["include"] = addonValue; break;
         case "catRelationsExcl": addons["relations"]["exclude"] = addonValue; break;
         case "catAgeFrom": addons["age"]["from"] = addonValue; break;
         case "catAgeTo": addons["age"]["to"] = addonValue; break;
