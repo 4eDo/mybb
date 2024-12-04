@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.16");
+console.log("v0.17");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -346,12 +346,13 @@ function searchInBlocks() {
   const relations = document.getElementById('searchInput_relations').value.toLowerCase();
   const tags = document.getElementById('searchInput_tags').value.toLowerCase();
 
-  const detailsElements = document.querySelectorAll('details');
 
   results.forEach(ticket => {
-    const details = document.querySelector(`.ticket-${ticket.tid}`);
+    const details = document.querySelectorAll(`.ticket-${ticket.tid}`);
     if (!details) return;
-    details.classList.remove('success', 'bad', 'notFound');
+    details.forEach(detail => {
+      detail.classList.remove('success', 'bad', 'notFound');
+    });
 
     const isBad = (value, excludeList) => excludeList.some(excludeItem => value.toLowerCase().includes(excludeItem.toLowerCase()));
 
