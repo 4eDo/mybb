@@ -402,7 +402,7 @@ async function init() {
 
   document.getElementById('searchInput_type').value = searchMode;
 
-  renderCatalog(results, "setting");
+  renderCatalog(results, "fandom");
   handleTypeChange();
   
   $("body").on("click", ".sort-button", function () {
