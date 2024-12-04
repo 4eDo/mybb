@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.7");
+console.log("v0.8");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -14,7 +14,7 @@ console.groupEnd();
 const TOPICS_PER_REQUEST = 100;
 const POSTS_PER_REQUEST = 100;
 var results;
-const addonParsers = {
+const addonParsers_bb = {
   catFandomIncl: /\[catFandomIncl\](.*?)\[\/catFandomIncl\]/,
   catFandomExcl: /\[catFandomExcl\](.*?)\[\/catFandomExcl\]/,
   catSettingIncl: /\[catSettingIncl\](.*?)\[\/catSettingIncl\]/,
@@ -30,15 +30,37 @@ const addonParsers = {
 function parseAddons(message) {
   const addons = {};
   let hasMatch = false;
-  for (const addonName in addonParsers) {
-    const match = message.match(addonParsers[addonName]);
+  for (const addonName in addonParsers_bb) {
+    const match = message.match(addonParsers_html[bb]);
     if (match) {
       addons[addonName] = match[1];
       hasMatch = true;
       break;
+    } else {
+      let content = extractTextUsingDOMParser(message, addonName);
+      if(content) {
+        addons[addonName] = content;
+        hasMatch = true;
+        break;
+      }
     }
   }
   return hasMatch ? addons : false;
+}
+function extractTextUsingDOMParser(html, tagName) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const elements = doc.querySelectorAll(`span.custom_tag_${tagName}`);
+
+  if (elements.length === 0) {
+    return null; // Ничего не найдено
+  }
+
+  let extractedText = "";
+  for (let i = 0; i < elements.length; i++) {
+      extractedText += elements[i].textContent.trim();
+  }
+  return extractedText;
 }
 
 async function fetchData(url) {
