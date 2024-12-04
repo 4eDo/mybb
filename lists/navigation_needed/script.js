@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.11");
+console.log("v0.12");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -43,17 +43,17 @@ function parseAddons(message) {
     if(content) {
       let addonValue = singleValueAddons.includes(addonName) ? content : content.split(",");
       switch(addonName) {
-        case "catFandomIncl": addons.fandom.include = addonValue; break;
-        case "catFandomExcl": addons.fandom.exclude = addonValue; break;
-        case "catSettingIncl": addons.setting.include = addonValue; break;
-        case "catSettingExcl": addons.setting.exclude = addonValue; break;
-        case "catSex": addons.sex = addonValue; break;
-        case "catRelationsIncl": addons.relations.include = addonValue; break;
-        case "catRelationsExcl": addons.relations.exclude = addonValue; break;
-        case "catAgeFrom": addons.age.from = addonValue; break;
-        case "catAgeTo": addons.age.to = addonValue; break;
-        case "catTagsIncl": addons.tags.include = addonValue; break;
-        case "catTagsExcl": addons.tags.exclude = addonValue; break;
+        case "catFandomIncl": addons["fandom"]["include"] = addonValue; break;
+        case "catFandomExcl": addons["fandom"]["exclude"] = addonValue; break;
+        case "catSettingIncl": addons["setting"]["include"] = addonValue; break;
+        case "catSettingExcl": addons["setting"]["exclude"] = addonValue; break;
+        case "catSex": addons["sex"] = addonValue; break;
+        case "catRelationsIncl": addons["elations"]["include"] = addonValue; break;
+        case "catRelationsExcl": addons["relations"]["exclude"] = addonValue; break;
+        case "catAgeFrom": addons["age"]["from"] = addonValue; break;
+        case "catAgeTo": addons["age"]["to"] = addonValue; break;
+        case "catTagsIncl": addons["tags"]["include"] = addonValue; break;
+        case "catTagsExcl": addons["tags"]["exclude"] = addonValue; break;
       }
       hasMatch = true;
       break;
