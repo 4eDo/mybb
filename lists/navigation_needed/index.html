@@ -1,0 +1,46 @@
+<div class="filter-box">
+	<label>Тип: 
+		<select id="searchInput_type">
+			<option value="all">Все</option>
+			<option value="findRole">Поиск роли</option>
+			<option value="findPlayer">Поиск соигрока</option>
+		</select>
+	</label>
+</div>
+<div class="filter-box">
+	<label>Фандом: 
+		<input type="text" id="searchInput_fandom" placeholder="Введите текст" list="fandomList">
+		<datalist id="fandomList"></datalist>
+	</label>
+	<label>Сеттинг: 
+		<input type="text" id="searchInput_setting" placeholder="Введите текст" list="settingList">
+		<datalist id="settingList"></datalist>
+	</label>
+	<label>Пол: 
+		<input type="text" id="searchInput_sex" placeholder="Введите текст" list="sexList">
+		<datalist id="sexList"></datalist>
+	</label>
+	<label>Отношения: 
+		<input type="text" id="searchInput_relations" placeholder="Введите текст" list="relationsList">
+		<datalist id="relationsList"></datalist>
+	</label>
+	<label>Теги: 
+		<input type="text" id="searchInput_tags" placeholder="Введите текст" list="tagsList">
+		<datalist id="tagsList"></datalist>
+	</label>
+	<button type="button" onclick="searchInBlocks()">Найти</button>
+	<button type="button" onclick="resetFilters()">Сбросить фильтры</button>
+</div>
+
+<div class="sort-box">
+	<p>Выберите сортировку:</p>
+	<div class="sort-button" data-sort="fandom">По фандому</div>
+	<div class="sort-button" data-sort="setting">По сеттингу</div>
+	<div class="sort-button" data-sort="sex">По полу</div>
+	<div class="sort-button" data-sort="relations">По типу отношений</div>
+	<div class="sort-button" data-sort="tags">По тегам</div>
+</div>
+
+<div id="catalog-box"></div>
+<script type="text/javascript" src="https://4edo.github.io/mybb/flists/navigation_needed/script.js"></script>
+<script></script>
