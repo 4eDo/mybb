@@ -415,5 +415,12 @@ async function init() {
   });
 
   document.getElementById('searchInput_type').addEventListener('change', handleTypeChange);
+
+  $(".searchInput").keydown(function(event) {
+    if (event.keyCode === 13) {
+      event.preventDefault();
+      searchInBlocks();
+    }
+  });
 }
 init();
