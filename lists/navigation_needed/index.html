@@ -5,39 +5,50 @@
 	}
 </style>
 
-<div class="filter-box">
-	<label>Тип: 
+<div class="fs-box filter-box inline">
+	<p class="infofield">Режим отображения позволяет выбрать, какие заявки показывать.</p>
+	<p class="selectfield">
+		<label for="searchInput_type">Тип:</label><br>
 		<select id="searchInput_type">
 			<option value="all">Все</option>
 			<option value="findRole">Поиск роли</option>
 			<option value="findPlayer">Поиск соигрока</option>
 		</select>
-	</label>
+	</p>
 </div>
-<div class="filter-box">
-	<label>Фандом: 
+
+<div class="fs-box filter-box inline">
+	<p class="infofield">Заявки, соответствующие критериям поиска, будут выделены. Остальные станут менее заметны. Для поиска нажмите кнопку "Найти".</p>
+	<p class="selectfield">
+		<label for="searchInput_fandom">Фандом:</label><br>
 		<input type="text" id="searchInput_fandom" placeholder="Введите текст" list="fandomList">
-		<datalist id="fandomList"></datalist>
-	</label>
-	<label>Сеттинг: 
-		<input type="text" id="searchInput_setting" placeholder="Введите текст" list="settingList">
-		<datalist id="settingList"></datalist>
-	</label>
-	<label>Пол: 
+		<datalist id="fandomList">
+	</p>
+	<p class="selectfield">
+		<label for="searchInput_setting">Сеттинг:</label><br>
+		<input type="text" id="searchInput_setting" placeholder="Введите текст" list="fandomList">
+		<datalist id="fandomList">
+	</p>
+	<p class="selectfield">
+		<label for="searchInput_sex">Пол:</label><br>
 		<input type="text" id="searchInput_sex" placeholder="Введите текст" list="sexList">
-		<datalist id="sexList"></datalist>
-	</label>
-	<label>Отношения: 
+		<datalist id="sexList">
+	</p>
+	<p class="selectfield">
+		<label for="searchInput_relations">Отношения:</label><br>
 		<input type="text" id="searchInput_relations" placeholder="Введите текст" list="relationsList">
-		<datalist id="relationsList"></datalist>
-	</label>
-	<label>Теги: 
+		<datalist id="relationsList">
+	</p>
+	<p class="selectfield">
+		<label for="searchInput_tags">Теги:</label><br>
 		<input type="text" id="searchInput_tags" placeholder="Введите текст" list="tagsList">
-		<datalist id="tagsList"></datalist>
-	</label>
+		<datalist id="tagsList">
+	</p>
+	
 	<button type="button" class="button submit" name="submit" onclick="searchInBlocks()">Найти</button>
 	<button type="button" class="button preview" name="preview" onclick="resetFilters()">Сбросить фильтры</button>
 </div>
+
 
 <div class="sort-box">
 	<div id="profilenav">
