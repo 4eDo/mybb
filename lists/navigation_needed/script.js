@@ -253,7 +253,7 @@ function renderCatalog(data, sortBy) {
 
   for (const key of sortedKeys) {
     const list = $('<div class="catalog-list"></div>');
-    const title = $('<div class="catalog-title"></div>').text(key);
+    const title = $('<div class="catalog-title container"></div>').text(key);
     const ul = $("<ul></ul>");
 
     sortedTickets[key].forEach((ticket) => {
