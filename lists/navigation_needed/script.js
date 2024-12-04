@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.13");
+console.log("v0.14");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -45,7 +45,6 @@ function parseAddons(message) {
       content = match[1];
     } else {
       content = extractTextUsingDOMParser(message, addonName);
-      break;
     }
     if(content) {
       let addonValue = singleValueAddons.includes(addonName) ? content : content.split(",");
@@ -63,7 +62,6 @@ function parseAddons(message) {
         case "catTagsExcl": addons["tags"]["exclude"] = addonValue; break;
       }
       hasMatch = true;
-      break;
     }
   }
   return hasMatch ? addons : false;
