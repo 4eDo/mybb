@@ -3,6 +3,55 @@
 	#profilenav ul li {
 		display: inline-block;
 	}
+	.ticket {
+		list-style: none;
+	}
+	
+	/* Как-то отмечаем заявки, где игрок ищет форум */
+	.findRole {
+		background-color: #00800030;
+	}
+	/* Как-то отмечаем заявки, где игрок ищет соигрока */
+	.findPlayer {
+		background-color: #00008030;
+	}
+
+	/* Заголовок заявки (по клику - больше деталей) */
+	summary:hover {
+		background-color: #80808050;
+		cursor: pointer;
+	}
+	
+	/* В подробной информации о заявке маркируем тип критерия. */
+	.label {
+		font-weight: bold;
+	}
+	
+	/* По результатам поиска заявка не совпадает / находится в exclude. Предлагаю не скрывать полностью. */
+	.bad {
+		opacity: 20%;
+	}
+	/* Нет упоминания ни одного из фильтров. Не скрываем, так как в заявке может быть указано, что не принципиально. */
+	.notFound {
+		opacity: 80%; 
+	}
+	/* Заявка соответствует указанным фильтрам */
+	.success { 
+		-webkit-box-shadow: var(--shadow_primary);
+		-moz-box-shadow: var(--shadow_primary);
+		box-shadow: var(--shadow_primary);
+	}
+	/* Если заявка принадлежит тому, кто смотрит страницу, маркируем */
+	.ticket-your {
+		-webkit-box-shadow: var(--shadow_secondary);
+		-moz-box-shadow: var(--shadow_secondary);
+		box-shadow: var(--shadow_secondary);
+	}
+
+	#catalog-box {
+		--shadow_primary: inset 0px 0px 24px 0px rgb(var(--primary400));
+		--shadow_secondary: inset 0px 0px 24px 0px rgb(var(--secondary400));
+	}
 </style>
 
 <div class="fs-box filter-box inline">
