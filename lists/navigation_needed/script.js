@@ -69,7 +69,7 @@ function parseAddons(message) {
 function extractTextUsingDOMParser(html, tagName) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const elements = doc.querySelectorAll(`span.custom_tag_${tagName}`);
+  const elements = doc.querySelectorAll(`.custom_tag_${tagName}`);
 
   if (elements.length === 0) {
     return null; // Ничего не найдено
