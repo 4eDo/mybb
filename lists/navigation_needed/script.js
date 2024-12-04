@@ -186,107 +186,93 @@ function renderCatalog(data, sortBy) {
   const catalogBox = $("#catalog-box");
   catalogBox.empty();
 
-  const sortedData = {};
-  const unspecifiedData = {};
+  const sortedTickets = {};
+  const unspecifiedTickets = {};
 
   data.forEach((ticket) => {
-    let sortKey;
     let hasValue = false;
+
+    const processCategory = (category, field) => {
+      if (ticket[category] && ticket[category][field] && ticket[category][field].length > 0) {
+          hasValue = true;
+          ticket[category][field].forEach(value => {
+            if (value) {
+              sortedTickets[value] = sortedTickets[value] || [];
+              sortedTickets[value].push(ticket);
+            }
+          });
+      }
+    };
 
     switch (sortBy) {
       case "fandom":
-        sortKey =
-          ticket.fandom.include && ticket.fandom.include.length > 0
-            ? ticket.fandom.include[0]
-            : null;
-        hasValue = ticket.fandom.include && ticket.fandom.include.length > 0;
+        processCategory("fandom", "include");
         break;
       case "setting":
-        sortKey =
-          ticket.setting.include && ticket.setting.include.length > 0
-            ? ticket.setting.include[0]
-            : null;
-        hasValue =
-          ticket.setting.include && ticket.setting.include.length > 0;
-        break;
-      case "sex":
-        sortKey = ticket.sex || null;
-        hasValue = !!ticket.sex;
+        processCategory("setting", "include");
         break;
       case "relations":
-        sortKey =
-          ticket.relations.include && ticket.relations.include.length > 0
-            ? ticket.relations.include[0]
-            : null;
-        hasValue =
-          ticket.relations.include && ticket.relations.include.length > 0;
+        processCategory("relations", "include");
         break;
       case "tags":
-        sortKey =
-          ticket.tags.include && ticket.tags.include.length > 0
-            ? ticket.tags.include[0]
-            : null;
-        hasValue = ticket.tags.include && ticket.tags.include.length > 0;
+        processCategory("tags", "include");
+        break;
+      case "sex":
+        if (ticket.sex) {
+          hasValue = true;
+          sortedTickets[ticket.sex] = sortedTickets[ticket.sex] || [];
+          sortedTickets[ticket.sex].push(ticket);
+        }
         break;
     }
 
-    if (sortKey) {
-      if (!sortedData[sortKey]) sortedData[sortKey] = [];
-      sortedData[sortKey].push(ticket);
-    } else if (hasValue) {
-      if (!unspecifiedData[sortBy]) unspecifiedData[sortBy] = [];
-      unspecifiedData[sortBy].push(ticket);
-    } else {
-      if (!unspecifiedData[sortBy]) unspecifiedData[sortBy] = [];
-      unspecifiedData[sortBy].push(ticket);
+    if (!hasValue && (ticket.fandom.include.length > 0 || ticket.setting.include.length > 0 || ticket.relations.include.length > 0 || ticket.tags.include.length > 0 || ticket.sex)) {
+      unspecifiedTickets[sortBy] = unspecifiedTickets[sortBy] || [];
+      unspecifiedTickets[sortBy].push(ticket);
     }
+
   });
 
 
-  for (const key in sortedData) {
-    sortedData[key].sort((a, b) => a.subject.localeCompare(b.subject));
+  for (const key in sortedTickets) {
+    sortedTickets[key].sort((a, b) => a.subject.localeCompare(b.subject));
   }
 
-  if (Object.keys(unspecifiedData).length > 0) {
-    for (const key in unspecifiedData) {
-      unspecifiedData[key].sort((a, b) => a.subject.localeCompare(b.subject));
-      sortedData["Не указано"] = unspecifiedData[key]; //Use "Не указано" as key
-    }
+  for (const key in unspecifiedTickets) {
+    unspecifiedTickets[key].sort((a, b) => a.subject.localeCompare(b.subject));
+    sortedTickets["Не указано"] = sortedTickets["Не указано"] || [];
+    sortedTickets["Не указано"].push(...unspecifiedTickets[key]);
   }
 
-  const sortedKeys = Object.keys(sortedData)
-    .sort((a, b) => a.localeCompare(b))
-    .sort((a, b) => (a === "Не указано" ? 1 : -1));
+
+  const sortedKeys = Object.keys(sortedTickets)
+    .sort((a, b) => {
+      if (a === "Не указано") return 1;
+      if (b === "Не указано") return -1;
+      return a.localeCompare(b);
+    });
+
 
   for (const key of sortedKeys) {
     const list = $('<div class="catalog-list"></div>');
     const title = $('<div class="catalog-title"></div>').text(key);
     const ul = $("<ul></ul>");
 
-    sortedData[key].forEach((ticket) => {
+    sortedTickets[key].forEach((ticket) => {
       const li = $(`<li class="ticket ${ticket.marker} ticket-${ticket.tid} ${ticket.author_id == UserID ? 'ticket-your' : ''}"></li>`);
       const a = $(`<details>
         <summary>Заявка "<a class="item-subj" href="/viewtopic.php?id=${ticket.tid}">${ticket.subject}</a>"</summary>
-<p><span class="label">Автор заявки:</span> ${ticket.author}</p>
-<p><span class="label">Интересуют фандомы:</span> ${ticket.fandom.include ? ticket.fandom.include.join(", ") : "--"
-        }</p>
-<p><span class="label">НЕ интересуют фандомы:</span> ${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : "--"
-        }</p>
-<p><span class="label">Интересуют сеттинги:</span> ${ticket.setting.include ? ticket.setting.include.join(", ") : "--"
-        }</p>
-<p><span class="label">НЕ интересуют сеттинги:</span> ${ticket.setting.exclude ? ticket.setting.exclude.join(", ") : "--"
-        }</p>
-<p><span class="label">Интересует пол:</span> ${ticket.sex}</p>
-<p><span class="label">Интересует возраст</span> от ${ticket.age.from != 0 ? ticket.age.from : "?"
-        } до ${ticket.age.to != 0 ? ticket.age.to : "?"}</p>
-<p class="yes"><span class="label">Интересуют отношения:</span> ${ticket.relations.include ? ticket.relations.include.join(", ") : "--"
-        }</p>
-<p><span class="label">НЕ интересуют отношения:</span> ${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : "--"
-        }</p>
-<p><span class="label">Интересуют теги:</span> ${ticket.tags.include ? ticket.tags.include.join(", ") : "--"
-        }</p>
-<p><span class="label">НЕ интересуют теги:</span> ${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : "--"
-        }</p>
+          <p><span class="label">Автор заявки:</span> ${ticket.author}</p>
+          <p><span class="label">Интересуют фандомы:</span> ${ticket.fandom.include ? ticket.fandom.include.join(", ") : "--"}</p>
+          <p><span class="label">НЕ интересуют фандомы:</span> ${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : "--"}</p>
+          <p><span class="label">Интересуют сеттинги:</span> ${ticket.setting.include ? ticket.setting.include.join(", ") : "--"}</p>
+          <p><span class="label">НЕ интересуют сеттинги:</span> ${ticket.setting.exclude ? ticket.setting.exclude.join(", ") : "--"}</p>
+          <p><span class="label">Интересует пол:</span> ${ticket.sex}</p>
+          <p><span class="label">Интересует возраст</span> от ${ticket.age.from != 0 ? ticket.age.from : "?"} до ${ticket.age.to != 0 ? ticket.age.to : "?"}</p>
+          <p class="yes"><span class="label">Интересуют отношения:</span> ${ticket.relations.include ? ticket.relations.include.join(", ") : "--"}</p>
+          <p><span class="label">НЕ интересуют отношения:</span> ${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : "--"}</p>
+          <p><span class="label">Интересуют теги:</span> ${ticket.tags.include ? ticket.tags.include.join(", ") : "--"}</p>
+          <p><span class="label">НЕ интересуют теги:</span> ${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : "--"}</p>
 </details>`);
       li.append(a);
       ul.append(li);
