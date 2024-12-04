@@ -64,7 +64,7 @@ async function getPosts(topicIds) {
   let skip = 0;
   let allPosts = [];
   while (true) {
-    const url = `/api.php?method=post.get&topic_id=${topicIds.join(',')}&fields=id,username,message,topic_id&limit=${POSTS_PER_REQUEST}&skip=${skip}&sort_by=id&sort_dir=asc`;
+    const url = `/api.php?method=post.get&topic_id=${topicIds.join(',')}&fields=id,username,user_id,message,topic_id&limit=${POSTS_PER_REQUEST}&skip=${skip}&sort_by=id&sort_dir=asc`;
     const data = await fetchData(url);
     if (!data?.response) break;
     allPosts.push(...data.response);
@@ -114,6 +114,7 @@ async function processForum(forumId, marker) {
     const topicIndex = topicIndexMap[post.topic_id];
     if (topicIndex !== undefined) {
       processedTopics[topicIndex].author = post.username;
+      processedTopics[topicIndex].author_id = post.user_id;
       const correctFirstPost = processedTopics[topicIndex].first_post != 0 && processedTopics[topicIndex].first_post < post.id;
       if (post.id === processedTopics[topicIndex].first_post || !correctFirstPost) {
         const addons = parseAddons(post.message);
@@ -219,7 +220,7 @@ function renderCatalog(data, sortBy) {
     const ul = $("<ul></ul>");
 
     sortedData[key].forEach((ticket) => {
-      const li = $(`<li class="ticket ${ticket.marker} ticket-${ticket.tid}"></li>`);
+      const li = $(`<li class="ticket ${ticket.marker} ticket-${ticket.tid} ${ticket.author_id == UserID ? 'ticket-your' : ''}"></li>`);
       const a = $(`<details>
         <summary>Заявка "<a class="item-subj" href="/viewtopic.php?id=${ticket.tid}">${ticket.subject}</a>"</summary>
 <p><span class="label">Автор заявки:</span> ${ticket.author}</p>
