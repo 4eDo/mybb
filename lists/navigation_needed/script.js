@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.18");
+console.log("v0.19");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -260,6 +260,7 @@ function renderCatalog(data, sortBy) {
       const li = $(`<li class="ticket ${ticket.marker} ticket-${ticket.tid} ${ticket.author_id == UserID ? 'ticket-your' : ''}"></li>`);
       const a = $(`<details>
         <summary>${ticket.author_id == UserID ? 'Ваша заявка' : 'Заявка'} "<a class="item-subj" href="/viewtopic.php?id=${ticket.tid}">${ticket.subject}</a>"</summary>
+        <blockdetails>
           <p><span class="label">Автор заявки:</span> ${ticket.author}</p>
           <p><span class="label">Интересуют фандомы:</span> ${ticket.fandom.include ? ticket.fandom.include.join(", ") : "--"}</p>
           <p><span class="label">НЕ интересуют фандомы:</span> ${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : "--"}</p>
@@ -271,7 +272,8 @@ function renderCatalog(data, sortBy) {
           <p><span class="label">НЕ интересуют отношения:</span> ${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : "--"}</p>
           <p><span class="label">Интересуют теги:</span> ${ticket.tags.include ? ticket.tags.include.join(", ") : "--"}</p>
           <p><span class="label">НЕ интересуют теги:</span> ${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : "--"}</p>
-</details>`);
+        </blockdetails>
+      </details>`);
       li.append(a);
       ul.append(li);
     });
