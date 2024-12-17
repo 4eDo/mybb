@@ -142,6 +142,7 @@ _templates_user
     <script>
         const COLOR_INPUT_TEXT_fcaf = "color: #000000 !important";
         const NEED_HIDE_NAVLINKS = true;
+		const TEMPLATE_SRC = "https://forumstatic.ru/files/001c/02/df/97193.html";
     </script>
 	<script type="text/javascript" src="https://4edo.github.io/mybb/fill_code_as_form/fillCodeAsForm.js"></script>
 <!-- end FILL CODE AS FORM -->
