@@ -63,7 +63,7 @@ function ajaxFetch(url, options = {}) {
 }
 
 async function fetchAndParseTemplates() {
-    if(typeof TEMPLATE_SRC !== 'undefined') { console.error("Источник шаблонов не подключен."); return;}
+    if(typeof TEMPLATE_SRC == 'undefined') { console.error("Источник шаблонов не подключен."); return;}
 	try {
         let response = await ajaxFetch(url, { responseType: 'text' });
         
