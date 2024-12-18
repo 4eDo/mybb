@@ -245,6 +245,9 @@ function fillCode(id) {
 			}	
 		}
 	});
+
+	code = code.replaceAll("{{CURRENT_USER_ID}}", UserID);
+	code = code.replaceAll("{{CURRENT_TOPIC_SRC}}", window.location);
 	
 	console.log("Сгенерированный код:", code);
 	insert(code);
