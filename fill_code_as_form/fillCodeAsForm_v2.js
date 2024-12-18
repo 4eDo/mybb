@@ -202,6 +202,7 @@ function drawForm(id) {
 		}
 
 		if(field.valIfEmpty) {
+			inputElement.setAttribute('data-has-valIfEmpty', 'true');
 			inputElement.setAttribute('data-valIfEmpty', field.valIfEmpty);
 		}
 		
@@ -247,8 +248,10 @@ function fillCode(id) {
 			} else {
 				code = code.replaceAll(placeholder, inputValue);
 			}	
-		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")  !== 'undefined') {
-			code = code.replaceAll(placeholder, document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty"));
+		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-has-valIfEmpty")) {
+			code = code.replaceAll(placeholder, document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")
+					      ? document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")
+					      : "");
 		}
 	});
 
