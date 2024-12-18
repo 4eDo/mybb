@@ -248,7 +248,7 @@ function fillCode(id) {
 			} else {
 				code = code.replaceAll(placeholder, inputValue);
 			}	
-		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-hasValIfEmpty")) {
+		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-hasValIfEmpty") !== 'undefined') {
 			code = code.replaceAll(placeholder, document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")
 					      ? document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")
 					      : "");
