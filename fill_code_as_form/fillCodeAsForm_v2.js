@@ -201,7 +201,7 @@ function drawForm(id) {
 			inputElement.setAttribute('data-textTransform', field.textTransform);
 		}
 
-		if(field.valIfEmpty) {
+		if(field.valIfEmpty !== 'undefined') {
 			inputElement.setAttribute('data-hasValIfEmpty', 'hasValIfEmpty');
 			inputElement.setAttribute('data-valIfEmpty', field.valIfEmpty);
 		}
