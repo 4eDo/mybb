@@ -262,16 +262,36 @@ function renderCatalog(data, sortBy) {
         <summary>${ticket.author_id == UserID ? 'Ваша заявка' : 'Заявка'} "<a class="item-subj" href="/viewtopic.php?id=${ticket.tid}">${ticket.subject}</a>"</summary>
         <blockdetails>
           <p><span class="label">Автор заявки:</span> ${ticket.author}</p>
-          <p><span class="label">Интересуют фандомы:</span> ${ticket.fandom.include ? ticket.fandom.include.join(", ") : "--"}</p>
-          <p><span class="label">НЕ интересуют фандомы:</span> ${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : "--"}</p>
-          <p><span class="label">Интересуют сеттинги:</span> ${ticket.setting.include ? ticket.setting.include.join(", ") : "--"}</p>
-          <p><span class="label">НЕ интересуют сеттинги:</span> ${ticket.setting.exclude ? ticket.setting.exclude.join(", ") : "--"}</p>
-          <p><span class="label">Интересует пол:</span> ${ticket.sex}</p>
-          <p><span class="label">Интересует возраст</span> от ${ticket.age.from != 0 ? ticket.age.from : "?"} до ${ticket.age.to != 0 ? ticket.age.to : "?"}</p>
-          <p class="yes"><span class="label">Интересуют отношения:</span> ${ticket.relations.include ? ticket.relations.include.join(", ") : "--"}</p>
-          <p><span class="label">НЕ интересуют отношения:</span> ${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : "--"}</p>
-          <p><span class="label">Интересуют теги:</span> ${ticket.tags.include ? ticket.tags.include.join(", ") : "--"}</p>
-          <p><span class="label">НЕ интересуют теги:</span> ${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : "--"}</p>
+          <div class="p_categories">
+          	<div class="p_fandom">
+          		<p><strong>ФАНДОМЫ</strong>
+          			<br><span class="custom_tag_catFandomIncl">${ticket.fandom.include ? ticket.fandom.include.join(", ") : "--"}</span>
+          			<br><span class="custom_tag_catFandomExcl">${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : "--"}</span></p>
+          	</div>
+          	<div class="p_setting">
+          		<p><strong>СЕТТИНГИ</strong>
+          			<br><span class="custom_tag_catSettingIncl">${ticket.setting.include ? ticket.setting.include.join(", ") : "--"}</span>
+          			<br><span class="custom_tag_catSettingExcl">${ticket.setting.exclude ? ticket.setting.exclude.join(", ") : "--"}</span></p>
+          	</div>
+          	<div class="p_age">
+          		<p><strong>ВОЗРАСТ</strong>
+          			<br><span class="custom_tag_catAgeFrom">${ticket.age.from != 0 ? ticket.age.from : "?"}</span> - <span class="custom_tag_catAgeTo">${ticket.age.to != 0 ? ticket.age.to : "?"}</span></p>
+          	</div>
+          	<div class="p_tag">
+          		<p><strong>МЕТКИ</strong>
+          			<br><span class="custom_tag_catTagsIncl">${ticket.tags.include ? ticket.tags.include.join(", ") : "--"}</span>
+          			<br><span class="custom_tag_catTagsExcl">${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : "--"}</span></p>
+          	</div>
+          	<div class="p_sex">
+          		<p><strong>ПОЛ</strong>
+          			<br><span class="custom_tag_catSex">${ticket.sex}</span></p>
+          	</div>
+          	<div class="p_relation">
+          		<p><strong>ТИП ОТНОШЕНИЙ</strong>
+          			<br><span class="custom_tag_catRelationsIncl">${ticket.relations.include ? ticket.relations.include.join(", ") : "--"}</span>
+          			<br><span class="custom_tag_catRelationsExcl">${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : "--"}</span></p>
+          	</div>
+          </div>
         </blockdetails>
       </details>`);
       li.append(a);
