@@ -185,13 +185,15 @@ function drawForm(id) {
 				option.innerText = opt;
 				inputElement.appendChild(option);
 			});
-			
-			field.optValAndNameList.forEach(opt => {
-				let option = document.createElement('option');
-				option.value = opt.val;
-				option.innerText = opt.name;
-				inputElement.appendChild(option);
-			});
+
+			if(field.optValAndNameList) {
+				field.optValAndNameList.forEach(opt => {
+					let option = document.createElement('option');
+					option.value = opt.val;
+					option.innerText = opt.name;
+					inputElement.appendChild(option);
+				});
+			}
 		}
 		if(field.textTransform) {
 			inputElement.setAttribute('data-textTransform', field.textTransform);
