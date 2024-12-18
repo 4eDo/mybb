@@ -178,13 +178,15 @@ function drawForm(id) {
 				option.innerText = field.addEmptyOpt;
 				inputElement.appendChild(option);
 			}
-			
-			field.optList.forEach(opt => {
-				let option = document.createElement('option');
-				option.value = opt;
-				option.innerText = opt;
-				inputElement.appendChild(option);
-			});
+
+			if(field.optList) {
+				field.optList.forEach(opt => {
+					let option = document.createElement('option');
+					option.value = opt;
+					option.innerText = opt;
+					inputElement.appendChild(option);
+				});
+			}
 
 			if(field.optValAndNameList) {
 				field.optValAndNameList.forEach(opt => {
