@@ -200,6 +200,10 @@ function drawForm(id) {
 		if(field.textTransform) {
 			inputElement.setAttribute('data-textTransform', field.textTransform);
 		}
+
+		if(field.valIfEmpty) {
+			inputElement.setAttribute('data-valIfEmpty', field.valIfEmpty);
+		}
 		
 		inputElement.id = `field_${field.tmpl}`;
 		inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
@@ -243,6 +247,8 @@ function fillCode(id) {
 			} else {
 				code = code.replaceAll(placeholder, inputValue);
 			}	
+		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")) {
+			code = code.replaceAll(placeholder, document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty"));
 		}
 	});
 
