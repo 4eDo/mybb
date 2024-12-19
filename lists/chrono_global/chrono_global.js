@@ -2,115 +2,132 @@ const FORUMS_WITH_GAMES = {
   "active": [23, 24],
   "done": [19]
 };
+const CURRENT_YEAR = "2010";
 
 const DEBUG_MODE = true;
 const TOPICS_PER_REQUEST = 100;
 const POSTS_PER_REQUEST = 100;
 
 const monthMap = {
-  1: ["январь", "янв", "january", "jan"],
-  2: ["февраль", "февр", "february", "feb"],
-  3: ["март", "мар", "march", "mar"],
-  4: ["апрель", "апр", "april", "apr"],
-  5: ["май", "may"],
-  6: ["июнь", "июн", "june", "jun"],
-  7: ["июль", "июл", "july", "jul"],
-  8: ["август", "авг", "august", "aug"],
-  9: ["сентябрь", "сент", "september", "sep"],
-  10: ["октябрь", "окт", "october", "oct"],
-  11: ["ноябрь", "ноя", "november", "nov"],
-  12: ["декабрь", "дек", "december", "dec"]
+  "январь": 1, "янв": 1, "january": 1, "jan": 1,
+  "февраль": 2, "февр": 2, "february": 2, "feb": 2,
+  "март": 3, "мар": 3, "march": 3, "mar": 3,
+  "апрель": 4, "апр": 4, "april": 4, "apr": 4,
+  "май": 5, "may": 5,
+  "июнь": 6, "июн": 6, "june": 6, "jun": 6,
+  "июль": 7, "июл": 7, "july": 7, "jul": 7,
+  "август": 8, "авг": 8, "august": 8, "aug": 8,
+  "сентябрь": 9, "сент": 9, "september": 9, "sep": 9,
+  "октябрь": 10, "окт": 10, "october": 10, "oct": 10,
+  "ноябрь": 11, "ноя": 11, "november": 11, "nov": 11,
+  "декабрь": 12, "дек": 12, "december": 12, "dec": 12,
 };
-// Получение месяца по названию
+
+
 function getMonthNumber(monthStr) {
-    for (const monthNumber in monthMap) {
-        if (monthMap[monthNumber].includes(monthStr.toLowerCase())) {
-            return parseInt(monthNumber);
-        }
-    }
-    return 0;
+  return monthMap[monthStr.toLowerCase()] || 0;
 }
+
+
+function getFullYear(year) {
+    const yearType = typeof year;
+  
+    if (yearType !== 'number' && yearType !== 'string') {
+      return 0;
+    }
+  
+    const yearNum = Number(year);
+  
+    if (isNaN(yearNum)) {
+      return 0;
+    }
+  
+    if (yearNum > 999) {
+      return yearNum;
+    } else {
+      const currentYear = Number(CURRENT_YEAR);
+      const currentCentury = Math.floor(currentYear / 100);
+      let fullYear;
+  
+      if (yearNum <= 99) {
+        let potentialYear = currentCentury * 100 + yearNum;
+  
+        if (potentialYear > currentYear) {
+          potentialYear -= 100;
+        }
+  
+        fullYear = potentialYear;
+      } else {
+        const yearStr = String(yearNum).padStart(3, '0');
+        const currentYearPrefix = String(currentCentury).padStart(2, '0');
+  
+        const potentialYear = Number(currentYearPrefix + yearStr.substring(1, 3));
+  
+        if (potentialYear > currentYear) {
+          fullYear = Number(String(currentCentury - 1).padStart(2, '0') + yearStr.substring(1, 3));
+        }
+         else {
+            fullYear = potentialYear;
+        }
+      }
+      return fullYear;
+    }
+  }
+
 function parseDate(subject) {
-    let dateParsed = false;
-    let parsedDate = null;
+  const dateRegex = /(\d{1,2})[.\/ -]?(\d{1,2})[.\/ -]?(\d{2,4})/;
+  const yearMonthRegex = /(\d{2,4})[.\/ -]?([a-zA-Zа-яА-Я]+)/i;
+    const yearRegex = /(\d{1,})/;
+    const complexDateRegex = /(\d{1,2})\.(\d{3,})-(\d{1,2})\.(\d{3,})/i;
 
-    //Регулярные выражения для разных форматов даты
-    const dateRegexes = [
-        //Формат ГГГГ-ММ-ДД
-        /(?:(\d{3,})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{1,2}))/i,
-        //Формат ДД.ММ.ГГГГ
-        /(?:(\d{1,2})\s*[-.\/]\s*(\d{1,2})\s*[-.\/]\s*(\d{3,}))/i,
-        //Формат ГГГГ-ММ
-        /(?:(\d{3,})\s*[-.\/]\s*([a-zA-Zа-яА-Я]+))/i,
-        /(?:(\d{3,})\s*[-.\/]\s*(\d{1,2}))/i,
-        //Формат ММ-ГГГГ
-        /(?:(\d{1,2})\s*[-.\/]\s*(\d{3,}))/i
-    ];
 
-    for (const regex of dateRegexes) {
-        const match = subject.match(regex);
-        if (match) {
-            let year, month, day;
-            if (match[1] && match[2] && match[3]) { // Формат с днем
-                year = parseInt(match[3]); //В зависимости от формата выбираем год
-                month = parseInt(match[2]);
-                day = parseInt(match[1]);
-            } else if (match[1] && match[2]) { // Формат без дня
-                year = parseInt(match[2]);
-                month = parseInt(match[1]);
-                day = 0;
-            }
-            if (year && month) {
-                parsedDate = { y: year, m: month, d: day };
-                dateParsed = true;
-                break; //Выходим из цикла, если дата найдена
-            }
+    // 1. Проверка с помощью регулярных выражений
+    let match = subject.match(dateRegex);
+    if (match) {
+        const day = parseInt(match[1]);
+        const month = parseInt(match[2]);
+        const year = parseInt(match[3]);
+        return {y: getFullYear(year), m: month, d: day};
+    }
+
+  match = subject.match(yearMonthRegex);
+    if (match) {
+        const year = parseInt(match[1]);
+        const month = getMonthNumber(match[2]);
+        if (month) {
+            return {y: getFullYear(year), m: month, d: 0};
         }
     }
 
     // 3. Проверка с удалением запятых и поиском месяца словом
-    if (!dateParsed) {
-        const noCommaSubject = subject.replace(/,/g, '');
-        const wordMonthRegex = new RegExp(`(${Object.values(monthMap).flat().join('|')})\\s*(\\d{4})`, 'i');
-        const wordMonthMatch = noCommaSubject.match(wordMonthRegex);
-        if (wordMonthMatch) {
-            const monthStr = wordMonthMatch[1];
-            const yearStr = wordMonthMatch[2];
-            const month = getMonthNumber(monthStr);
-            const year = parseInt(yearStr);
-            if (year && month) {
-                parsedDate = { y: year, m: month, d: 0 };
-                dateParsed = true;
-            }
-        }
+    const noCommaSubject = subject.replace(/,/g, '');
+    const wordMonthRegex = new RegExp(`(${Object.keys(monthMap).join('|')})\\s*(\\d{4})`, 'i');
+    const wordMonthMatch = noCommaSubject.match(wordMonthRegex);
+    if (wordMonthMatch) {
+      const monthStr = wordMonthMatch[1];
+      const yearStr = wordMonthMatch[2];
+      const month = getMonthNumber(monthStr);
+      const year = parseInt(yearStr);
+      if (year && month) {
+        return { y: getFullYear(year), m: month, d: 0 };
+      }
     }
 
-    // 4. Проверка только года
-    if (!dateParsed) {
-        const yearOnlyRegex = /(\d{1,})/;
-        const yearOnlyMatch = subject.match(yearOnlyRegex);
-        if (yearOnlyMatch) {
-            const year = parseInt(yearOnlyMatch[1]);
-            if (year) {
-                parsedDate = { y: year, m: 0, d: 0 };
-                dateParsed = true;
-            }
-        }
-    }
-  
-    // 5. Дополнительная проверка для формата "MM.YYYY-MM.YYYY" - берём только первую дату
-    if (!dateParsed) {
-        const complexDateRegex = /(\d{1,2})\.(\d{3,})-(\d{1,2})\.(\d{3,})/i;
-        const complexDateMatch = subject.match(complexDateRegex);
-        if (complexDateMatch) {
-            const month = parseInt(complexDateMatch[1]);
-            const year = parseInt(complexDateMatch[2]);
-            parsedDate = { y: year, m: month, d: 0 };
-            dateParsed = true;
-        }
+  // 4. Проверка только года
+  const yearOnlyMatch = subject.match(yearRegex);
+    if (yearOnlyMatch) {
+        const year = parseInt(yearOnlyMatch[1]);
+        return {y: getFullYear(year), m: 0, d: 0};
     }
 
-    return parsedDate;
+      // 5. Дополнительная проверка для формата "MM.YYYY-MM.YYYY" - берём только первую дату
+  match = subject.match(complexDateRegex);
+  if (match) {
+      const month = parseInt(match[1]);
+      const year = parseInt(match[2]);
+      return { y: getFullYear(year), m: month, d: 0 };
+  }
+  return null; // Если ничего не подошло
 }
 
 
