@@ -265,22 +265,22 @@ function renderCatalog(data, sortBy) {
           <div class="p_categories">
           	<div class="p_fandom">
           		<p><strong>ФАНДОМЫ</strong>
-          			<br><span class="custom_tag_catFandomIncl">${ticket.fandom.include ? ticket.fandom.include.join(", ") : "--"}</span>
-          			<br><span class="custom_tag_catFandomExcl">${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : "--"}</span></p>
+          			<br><span class="custom_tag_catFandomIncl">${ticket.fandom.include ? ticket.fandom.include.join(", ") : ""}</span>
+          			<br><span class="custom_tag_catFandomExcl">${ticket.fandom.exclude ? ticket.fandom.exclude.join(", ") : ""}</span></p>
           	</div>
           	<div class="p_setting">
           		<p><strong>СЕТТИНГИ</strong>
-          			<br><span class="custom_tag_catSettingIncl">${ticket.setting.include ? ticket.setting.include.join(", ") : "--"}</span>
-          			<br><span class="custom_tag_catSettingExcl">${ticket.setting.exclude ? ticket.setting.exclude.join(", ") : "--"}</span></p>
+          			<br><span class="custom_tag_catSettingIncl">${ticket.setting.include ? ticket.setting.include.join(", ") : ""}</span>
+          			<br><span class="custom_tag_catSettingExcl">${ticket.setting.exclude ? ticket.setting.exclude.join(", ") : ""}</span></p>
           	</div>
           	<div class="p_age">
           		<p><strong>ВОЗРАСТ</strong>
-          			<br><span class="custom_tag_catAgeFrom">${ticket.age.from != 0 ? ticket.age.from : "?"}</span> - <span class="custom_tag_catAgeTo">${ticket.age.to != 0 ? ticket.age.to : "?"}</span></p>
+          			<br><span class="custom_tag_catAgeFrom">${ticket.age.from != 0 ? ticket.age.from : ""}</span> - <span class="custom_tag_catAgeTo">${ticket.age.to != 0 ? ticket.age.to : ""}</span></p>
           	</div>
           	<div class="p_tag">
           		<p><strong>МЕТКИ</strong>
-          			<br><span class="custom_tag_catTagsIncl">${ticket.tags.include ? ticket.tags.include.join(", ") : "--"}</span>
-          			<br><span class="custom_tag_catTagsExcl">${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : "--"}</span></p>
+          			<br><span class="custom_tag_catTagsIncl">${ticket.tags.include ? ticket.tags.include.join(", ") : ""}</span>
+          			<br><span class="custom_tag_catTagsExcl">${ticket.tags.exclude ? ticket.tags.exclude.join(", ") : ""}</span></p>
           	</div>
           	<div class="p_sex">
           		<p><strong>ПОЛ</strong>
@@ -288,8 +288,8 @@ function renderCatalog(data, sortBy) {
           	</div>
           	<div class="p_relation">
           		<p><strong>ТИП ОТНОШЕНИЙ</strong>
-          			<br><span class="custom_tag_catRelationsIncl">${ticket.relations.include ? ticket.relations.include.join(", ") : "--"}</span>
-          			<br><span class="custom_tag_catRelationsExcl">${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : "--"}</span></p>
+          			<br><span class="custom_tag_catRelationsIncl">${ticket.relations.include ? ticket.relations.include.join(", ") : ""}</span>
+          			<br><span class="custom_tag_catRelationsExcl">${ticket.relations.exclude ? ticket.relations.exclude.join(", ") : ""}</span></p>
           	</div>
           </div>
         </blockdetails>
