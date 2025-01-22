@@ -149,7 +149,8 @@ async function processForum(forumId, marker) {
       include: [],
       exclude: []
     },
-    author: ""
+    author: "",
+    hasSddons: false
   }));
 
   const topicIndexMap = Object.fromEntries(processedTopics.map((topic, index) => [topic.tid, index]));
@@ -163,6 +164,7 @@ async function processForum(forumId, marker) {
       if (post.id === processedTopics[topicIndex].first_post || !correctFirstPost) {
         const addons = parseAddons(post.message);
         if (addons) {
+          processedTopics[topicIndex].hasAddons = true;
           processedTopics[topicIndex] = { ...processedTopics[topicIndex], ...addons };
         }
         if (!correctFirstPost) {
@@ -262,7 +264,7 @@ function renderCatalog(data, sortBy) {
         <summary>${ticket.author_id == UserID ? 'Ваша заявка' : 'Заявка'} "<a class="item-subj" href="/viewtopic.php?id=${ticket.tid}">${ticket.subject}</a>"</summary>
         <blockdetails>
           <p><span class="label">Автор заявки:</span> ${ticket.author}</p>
-          <div class="p_categories">
+          <div class="p_categories" ${ticket.hasAddons ? "" : "hidden"}>
           	<div class="p_fandom">
           		<p><strong>ФАНДОМЫ</strong>
           			<br><span class="custom_tag_catFandomIncl">${ticket.fandom.include ? ticket.fandom.include.join(", ") : ""}</span>
