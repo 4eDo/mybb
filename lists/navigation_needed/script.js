@@ -264,7 +264,7 @@ function renderCatalog(data, sortBy) {
         <summary>${ticket.author_id == UserID ? 'Ваша заявка' : 'Заявка'} "<a class="item-subj" href="/viewtopic.php?id=${ticket.tid}">${ticket.subject}</a>"</summary>
         <blockdetails>
           <p><span class="label">Автор заявки:</span> ${ticket.author}</p>
-          <div class="p_categories" ${ticket.hasAddons ? "" : "hidden"}>
+          <div class="p_categories ${ticket.hasAddons ? '' : 'hidden'}">
           	<div class="p_fandom">
           		<p><strong>ФАНДОМЫ</strong>
           			<br><span class="custom_tag_catFandomIncl">${ticket.fandom.include ? ticket.fandom.include.join(", ") : ""}</span>
