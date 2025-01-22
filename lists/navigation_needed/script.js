@@ -33,7 +33,7 @@ function parseAddons(message) {
     fandom: { include: null, exclude: null },
     setting: { include: null, exclude: null },
     relations: { include: null, exclude: null },
-    age: { from: null, to: null },
+    age: { from: 0, to: 0 },
     tags: { include: null, exclude: null },
     sex: null
   };
@@ -284,7 +284,7 @@ function renderCatalog(data, sortBy) {
           	</div>
           	<div class="p_sex">
           		<p><strong>ПОЛ</strong>
-          			<br><span class="custom_tag_catSex">${ticket.sex}</span></p>
+          			<br><span class="custom_tag_catSex">${ticket.sex ? ticket.sex : ""}</span></p>
           	</div>
           	<div class="p_relation">
           		<p><strong>ТИП ОТНОШЕНИЙ</strong>
