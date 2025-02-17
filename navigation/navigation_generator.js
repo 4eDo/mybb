@@ -5,19 +5,49 @@ console.groupEnd();
 const linksElement = document.getElementById("sitemap_4eDo_links");
 const LINKS = JSON.parse(linksElement.textContent.trim());
 
-function createTagList(data) {
-  const tagMap = {};
-  
-  data.forEach(item => {
-    item.tags.forEach(tag => {
-      const tagParts = tag.split(':').map(part => part.trim());
-      addToTagMap(tagMap, tagParts, item);
+function collectAllTags(data) {
+    const allTagsSet = new Set();
+    data.forEach(item => {
+        item.tags.forEach(tag => {
+            const tagString = tag.split(':').map(part => part.trim()).join(':');
+            allTagsSet.add(tagString);
+        });
     });
-  });
-  
-  const html = generateHTML(tagMap);
-  document.getElementById('sitemap_4eDo').innerHTML = html;
+    const allTags = Array.from(allTagsSet);
+    allTags.sort();
+    return allTags;
 }
+function createTagList(data) {
+    const allTags = collectAllTags(data);
+    const tagMap = {};
+    allTags.forEach(tagString => {
+        const tagParts = tagString.split(':').map(part => part.trim());
+        let currentMap = tagMap;
+        for (let i = 0; i < tagParts.length; i++) {
+            const tag = tagParts[i];
+            if (!currentMap[tag]) {
+                currentMap[tag] = {
+                    links: [],
+                    subTags: {}
+                };
+            }
+            if (i < tagParts.length - 1) {
+                currentMap = currentMap[tag].subTags;
+            }
+        }
+    });
+
+    data.forEach(item => {
+        item.tags.forEach(tag => {
+            const tagParts = tag.split(':').map(part => part.trim());
+            addToTagMap(tagMap, tagParts, item);
+        });
+    });
+
+    const html = generateHTML(tagMap);
+    document.getElementById('sitemap_4eDo').innerHTML = html;
+}
+
 function addToTagMap(tagMap, tagParts, item) {
   const tag = tagParts[0];
   
