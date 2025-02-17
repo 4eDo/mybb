@@ -8,7 +8,7 @@ var url = TEMPLATE_SRC;
 let needHideNavlinks = typeof NEED_HIDE_NAVLINKS !== 'undefined' ? NEED_HIDE_NAVLINKS : true;
 
 var currentForum = FORUM.topic&&FORUM.topic.forum_id ? FORUM.topic.forum_id : new URLSearchParams(window.location.search).get('fid');
-var currentTopic = new URLSearchParams(window.location.search).get('id');
+var currentTopic = new URLSearchParams(window.location.search).get('id') ? new URLSearchParams(window.location.search).get('id') : new URLSearchParams(window.location.search).get('tid');
 
 var userTemplateList = [];
 
