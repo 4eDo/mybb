@@ -224,7 +224,7 @@ function renderFormField(field, isInSwitch = false) {
     };
 }
 
-function generateFormHTML(form, isNested = false) {
+function generateFormHTML(form) {
     let html = '';
 
     form.forEach(field => {
@@ -236,18 +236,18 @@ function generateFormHTML(form, isNested = false) {
             const switchEvent = `handleSwitchFields(this, '${field.tmpl}')`;
             inputElement.setAttribute("onchange", switchEvent);
 
-            field.switch.forEach(switchCase => {
-                const nestedHTML = generateFormHTML([switchCase], true); // Recursive call for nested switches
-                switchCasesHTML += `
+            switchCasesHTML = field.switch.map(switchCase => {
+                let { element: switchElement, field: switchField } = renderFormField(switchCase);
+                return `
                     <tr class="switch-case-${field.tmpl}" hidden data-target-val="${switchCase.targetVal || ''}">
                         <td>
                             <label>${switchCase.name}</label>
                             <div>${switchCase.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
                         </td>
-                        <td>${nestedHTML}</td>
+                        <td>${switchElement ? switchElement.outerHTML : ''}</td>
                     </tr>
                 `;
-            });
+            }).join('');
         }
 
         html += `
