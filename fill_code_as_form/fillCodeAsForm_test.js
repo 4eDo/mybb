@@ -246,7 +246,7 @@ function generateFormHTML(form) {
             <tr data-parent-tmpl="${parentTmpl}" ${hidden} data-target-val="${targetVal}">
                 <td>
                     <label>${field.name}</label>
-                    <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
+                    <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code><a href='адрес_ссылки'>текст_ссылки</a></code>`).replaceAll("<br>", `\n\n`)}</div>
                 </td>
                 <td>${inputElement ? inputElement.outerHTML : ''}</td>
             </tr>
@@ -320,12 +320,12 @@ function fillCode(id) {
         let inputValue = element ? element.value : null;
 
         // Find the field in the flattened form
-        let field = flattenedForm.find(f => f.tmpl === tmpl);
+        let field = flattenedForm.find(f => f.tmpl == tmpl);
 
         if (!element) {
             let valIfEmpty = field?.valIfEmpty;
             if (valIfEmpty) {
-                inputValue = valIfEmpty === "none" ? "" : valIfEmpty;
+                inputValue = valIfEmpty == "none" ? "" : valIfEmpty;
                 code = code.replaceAll(placeholder, inputValue);
             }
         } else if (inputValue) {
@@ -343,7 +343,7 @@ function fillCode(id) {
         } else {
             let valIfEmpty = element ? element.getAttribute("data-valIfEmpty") : null;
             if (valIfEmpty) {
-                inputValue = valIfEmpty === "none" ? "" : valIfEmpty;
+                inputValue = valIfEmpty == "none" ? "" : valIfEmpty;
                 code = code.replaceAll(placeholder, inputValue);
             }
         }
