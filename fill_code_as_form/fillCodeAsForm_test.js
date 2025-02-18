@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.23");
+console.group("4eDo script fill_code_as_form v2.24");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -279,17 +279,17 @@ function handleSwitchFields(selectElement, fieldTmpl) {
     });
 }
 
-function flattenForm(form, parentTmpl = null) {
+function flattenForm(form, parentTmpl = null, targetVal = null) {
     let flattened = [];
 
     form.forEach(field => {
-        let newField = { ...field, parentTmpl: parentTmpl }; // Add parentTmpl
+        let newField = { ...field, parentTmpl: parentTmpl, targetVal: targetVal }; // Add parentTmpl and targetVal
         flattened.push(newField);
 
         if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
             let switchCases = field.switch;
             switchCases.forEach(switchCase => {
-                flattened.push(...flattenForm([switchCase], field.tmpl)); // Flatten switch cases
+                flattened.push(...flattenForm([switchCase], field.tmpl, switchCase.targetVal)); // Flatten switch cases
             });
             delete field.switch; // Remove switch to avoid processing it again
         }
