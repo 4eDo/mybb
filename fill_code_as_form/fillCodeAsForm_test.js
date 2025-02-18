@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.05");
+console.group("4eDo script fill_code_as_form v2.06");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -139,7 +139,7 @@ function drawForm(id) {
     let table = document.createElement('table');
 
     // Generate the entire form HTML
-    let formHTML = generateFormHTML(targetTmpl.form);
+    let formHTML = generateFormHTML(targetTmpl.form, table);
     table.innerHTML = formHTML;
 
     // Add event listeners for switch fields
@@ -164,7 +164,7 @@ function drawForm(id) {
     targetForm.appendChild(button);
 }
 
-function renderFormField(field, parentTmpl = null) {
+function renderFormField(field, isInSwitch = false) {
     let inputElement;
 
     if (field.type === 'text') {
@@ -224,20 +224,35 @@ function renderFormField(field, parentTmpl = null) {
     inputElement.id = `field_${field.tmpl}`;
     inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
 
-    return inputElement; // Return the element
+    return {
+        element: inputElement,
+        field: field
+    };
 }
 
-function generateFormHTML(form) {
+function generateFormHTML(form, table) {
     let html = '';
+
     form.forEach(field => {
-        let inputElement = renderFormField(field);
+        let { element: inputElement, field: currentField } = renderFormField(field);
 
         let switchCasesHTML = '';
+        let switchEvent = '';
         if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
-          switchCasesHTML = field.switch.map(switchCase => {
-            let switchContent = generateFormHTML([switchCase]); // Note: passing [switchCase] as an array
-            return `<tr class="switch-case-${field.tmpl}" hidden><td colspan="2">${switchContent}</td></tr>`;
-          }).join('');
+            switchEvent = `handleSwitchFields(this, '${field.tmpl}', '${field.switch.map(s => s.targetVal).join(',')}')`
+            switchCasesHTML = field.switch.map(switchCase => {
+                let {element, field: switchCaseField } = renderFormField(switchCase, true);
+                const switchContent = element ? element.outerHTML : '';
+                return `
+                     <tr class="switch-case-${field.tmpl} hidden">
+                        <td>
+                            <label>${switchCase.name}</label>
+                            <div>${switchCase.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
+                        </td>
+                        <td>${switchContent}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         html += `
@@ -256,21 +271,20 @@ function generateFormHTML(form) {
 
 function handleSwitchFields(field, table, selectElement) {
     const selectedValue = selectElement.value;
-    const fieldTmpl = field.tmpl;
-
-    if (field.switch && Array.isArray(field.switch)) {
-        field.switch.forEach(switchCase => {
-            const targetVal = String(switchCase.targetVal);
-            const switchCaseClass = `switch-case-${fieldTmpl}`;
-            const switchRows = table.querySelectorAll(`.${switchCaseClass}`);
-            const shouldShow = selectedValue === targetVal;
-
-            switchRows.forEach(row => {
-                row.hidden = !shouldShow;
-            });
-        });
-    } else {
-        console.warn("field.switch is not a valid array", field.switch);
+    const fieldTmpl = field;
+  //  const field = selectedTemplate.form.find(f => f.tmpl === fieldTmpl)
+    //const field = selectedTemplate.form.find(f => f.tmpl === fieldTmpl) ||
+    //(selectedTemplate.form.find(f => f.switch?.find(s => s.tmpl === fieldTmpl))?.switch?.find(s => s.tmpl === fieldTmpl));
+    if(field && field !== undefined){
+    const switchClass = `switch-case-${field}`;
+    const switchRows = table.querySelectorAll(`.${switchClass}`);
+    switchRows.forEach(row => {
+      if (row.classList.contains(selectedValue)) {
+        row.classList.remove("hidden");
+      } else {
+        row.classList.add("hidden");
+      }
+    });
     }
 }
 
