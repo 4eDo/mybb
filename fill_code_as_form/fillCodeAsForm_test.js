@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.24");
+console.group("4eDo script fill_code_as_form v2.25");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -276,6 +276,13 @@ function handleSwitchFields(selectElement, fieldTmpl) {
         });
 
         row.hidden = !shouldShow; // Set visibility AFTER clearing values
+    });
+
+    // Call handleSwitchFields for nested selects
+    const nestedSelects = document.querySelectorAll(`select[data-parent-tmpl="${fieldTmpl}"]`);
+    nestedSelects.forEach(nestedSelect => {
+        const nestedFieldTmpl = nestedSelect.id.replace('field_', '');
+        handleSwitchFields(nestedSelect, nestedFieldTmpl);
     });
 }
 
