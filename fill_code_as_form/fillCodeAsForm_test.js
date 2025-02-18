@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.07");
+console.group("4eDo script fill_code_as_form v2.02");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -142,26 +142,7 @@ function drawForm(id) {
     let formHTML = generateFormHTML(targetTmpl.form, table);
     table.innerHTML = formHTML;
 
-    // Add event listeners for switch fields
-    table.querySelectorAll('select').forEach(selectElement => {
-        const fieldTmpl = selectElement.id.replace('field_', '');
-        const field = targetTmpl.form.find(f => f.tmpl === fieldTmpl);
-
-        if (field && field.switch && Array.isArray(field.switch)) {
-            selectElement.addEventListener('change', () => {
-                handleSwitchFields(field, table, selectElement);
-            });
-        }
-    });
-
     targetForm.appendChild(table);
-
-    let button = document.createElement('div');
-    button.id = 'tmpl_get-code-button';
-    button.innerText = 'Получить код';
-    button.setAttribute('onclick', `fillCode(${id})`);
-
-    targetForm.appendChild(button);
 }
 
 function renderFormField(field, isInSwitch = false) {
@@ -270,23 +251,19 @@ function generateFormHTML(form, table) {
     return html;
 }
 
-function handleSwitchFields(field, table, selectElement) {
+function handleSwitchFields(selectElement, fieldTmpl, availableTargets) {
     const selectedValue = selectElement.value;
-    const fieldTmpl = field;
-  //  const field = selectedTemplate.form.find(f => f.tmpl === fieldTmpl)
-    //const field = selectedTemplate.form.find(f => f.tmpl === fieldTmpl) ||
-    //(selectedTemplate.form.find(f => f.switch?.find(s => s.tmpl === fieldTmpl))?.switch?.find(s => s.tmpl === fieldTmpl));
-    if(field && field !== undefined){
-    const switchClass = `switch-case-${field}`;
-    const switchRows = table.querySelectorAll(`.${switchClass}`);
+    const switchClass = `switch-case-${fieldTmpl}`;
+
+    const switchRows = document.querySelectorAll(`.${switchClass}`); // Search the entire document
+
     switchRows.forEach(row => {
-      if (row.classList.contains(selectedValue)) {
-        row.classList.remove("hidden");
-      } else {
-        row.classList.add("hidden");
-      }
+        if (row.classList.contains(selectedValue)) {
+            row.classList.remove("hidden");
+        } else {
+            row.classList.add("hidden");
+        }
     });
-    }
 }
 
 function fillCode(id) {
