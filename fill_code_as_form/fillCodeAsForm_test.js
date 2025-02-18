@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.20");
+console.group("4eDo script fill_code_as_form v2.21");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -235,12 +235,12 @@ function generateFormHTML(form) {
         let { element: inputElement, field: currentField } = renderFormField(field);
 
         let isSwitchCase = field.parentTmpl !== null; // Check if it's a switch case
-        let rowClass = isSwitchCase ? `switch-case-${field.parentTmpl}` : '';
         let hidden = isSwitchCase ? 'hidden' : '';
         let targetVal = field.targetVal || '';
+        let parentTmpl = field.parentTmpl || '';
 
         html += `
-            <tr class="${rowClass}" ${hidden} data-target-val="${targetVal}">
+            <tr data-parent-tmpl="${parentTmpl}" ${hidden} data-target-val="${targetVal}">
                 <td>
                     <label>${field.name}</label>
                     <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
@@ -254,8 +254,7 @@ function generateFormHTML(form) {
 
 function handleSwitchFields(selectElement, fieldTmpl) {
     const selectedValue = selectElement.value;
-    const switchClass = `switch-case-${fieldTmpl}`;
-    const switchRows = document.querySelectorAll(`.${switchClass}`);
+    const switchRows = document.querySelectorAll(`tr[data-parent-tmpl="${fieldTmpl}"]`);
 
     switchRows.forEach(row => {
         const targetVal = row.dataset.targetVal;
