@@ -293,7 +293,7 @@ function flattenForm(form, parentTmpl = null, targetVal = null) {
         let newField = { ...field, parentTmpl: parentTmpl, targetVal: targetVal }; // Add parentTmpl and targetVal
         flattened.push(newField);
 
-        if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
+        if (field.type == 'select' && field.switch && Array.isArray(field.switch)) {
             let switchCases = field.switch;
             switchCases.forEach(switchCase => {
                 flattened.push(...flattenForm([switchCase], field.tmpl, switchCase.targetVal)); // Flatten switch cases
@@ -301,7 +301,7 @@ function flattenForm(form, parentTmpl = null, targetVal = null) {
             delete field.switch; // Remove switch to avoid processing it again
         }
     });
-
+	console.log(flattened);
     return flattened;
 }
 
@@ -313,7 +313,7 @@ function fillCode(id) {
     // Flatten the form to get all tmpls
     let flattenedForm = flattenForm(selectedTemplate.form);
     let allTmpls = new Set(flattenedForm.map(field => field.tmpl));
-	console.log(flattenedForm);
+	
 	console.log(allTmpls);
     allTmpls.forEach(tmpl => {
         let placeholder = `{{${tmpl}}}`;
