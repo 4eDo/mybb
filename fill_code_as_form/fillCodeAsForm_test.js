@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.04");
+console.group("4eDo script fill_code_as_form v2.05");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -138,8 +138,20 @@ function drawForm(id) {
     targetForm.innerHTML = `<div id="templateFormName">${targetTmpl.name}</div>`;
     let table = document.createElement('table');
 
-    targetTmpl.form.forEach(field => {
-        renderFormField(field, table);
+    // Generate the entire form HTML
+    let formHTML = generateFormHTML(targetTmpl.form);
+    table.innerHTML = formHTML;
+
+    // Add event listeners for switch fields
+    table.querySelectorAll('select').forEach(selectElement => {
+        const fieldTmpl = selectElement.id.replace('field_', '');
+        const field = targetTmpl.form.find(f => f.tmpl === fieldTmpl);
+
+        if (field && field.switch && Array.isArray(field.switch)) {
+            selectElement.addEventListener('change', () => {
+                handleSwitchFields(field, table, selectElement);
+            });
+        }
     });
 
     targetForm.appendChild(table);
@@ -152,19 +164,7 @@ function drawForm(id) {
     targetForm.appendChild(button);
 }
 
-function renderFormField(field, table, parentTmpl = null) {
-    let row = document.createElement('tr');
-    let labelCell = document.createElement('td');
-    let label = document.createElement('label');
-    label.innerText = field.name;
-    let labelDescr = document.createElement('div');
-    labelDescr.innerText = field.info
-        .replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`)
-        .replaceAll("<br>", `\n\n`);
-    labelCell.appendChild(label);
-    labelCell.appendChild(labelDescr);
-
-    let inputCell = document.createElement('td');
+function renderFormField(field, parentTmpl = null) {
     let inputElement;
 
     if (field.type === 'text') {
@@ -211,7 +211,6 @@ function renderFormField(field, table, parentTmpl = null) {
                 inputElement.appendChild(option);
             });
         }
-
     }
 
     if (field.textTransform) {
@@ -224,31 +223,35 @@ function renderFormField(field, table, parentTmpl = null) {
 
     inputElement.id = `field_${field.tmpl}`;
     inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
-    inputCell.appendChild(inputElement);
 
-    row.appendChild(labelCell);
-    row.appendChild(inputCell);
-    table.appendChild(row);
+    return inputElement; // Return the element
+}
 
-    // Handle switch cases (including nested selects)
-    if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
-        inputElement.addEventListener('change', function(event) {
-            handleSwitchFields(field, table, event.target);
-        });
-        // Render nested switch cases, but hide them initially
-        field.switch.forEach(switchCase => {
-            let switchRow = document.createElement('tr');
-            switchRow.classList.add(`switch-case-${field.tmpl}`);
-            switchRow.hidden = true; // Hide by default
+function generateFormHTML(form) {
+    let html = '';
+    form.forEach(field => {
+        let inputElement = renderFormField(field);
 
-            let switchCell = document.createElement('td');
-            switchCell.colSpan = 2; // Span both columns
+        let switchCasesHTML = '';
+        if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
+          switchCasesHTML = field.switch.map(switchCase => {
+            let switchContent = generateFormHTML([switchCase]); // Note: passing [switchCase] as an array
+            return `<tr class="switch-case-${field.tmpl}" hidden><td colspan="2">${switchContent}</td></tr>`;
+          }).join('');
+        }
 
-            renderFormField(switchCase, table); // Pass the original table
-            switchRow.appendChild(switchCell);
-            table.appendChild(switchRow);
-        });
-    }
+        html += `
+            <tr>
+                <td>
+                    <label>${field.name}</label>
+                    <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
+                </td>
+                <td>${inputElement ? inputElement.outerHTML : ''}</td>
+            </tr>
+            ${switchCasesHTML}
+        `;
+    });
+    return html;
 }
 
 function handleSwitchFields(field, table, selectElement) {
