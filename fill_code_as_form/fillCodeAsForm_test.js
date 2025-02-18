@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.06");
+console.group("4eDo script fill_code_as_form v2.07");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -240,11 +240,12 @@ function generateFormHTML(form, table) {
         let switchEvent = '';
         if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
             switchEvent = `handleSwitchFields(this, '${field.tmpl}', '${field.switch.map(s => s.targetVal).join(',')}')`
+            inputElement.setAttribute("onchange", switchEvent);
             switchCasesHTML = field.switch.map(switchCase => {
                 let {element, field: switchCaseField } = renderFormField(switchCase, true);
                 const switchContent = element ? element.outerHTML : '';
                 return `
-                     <tr class="switch-case-${field.tmpl} hidden">
+                     <tr class="switch-case-${field.tmpl} hidden ${switchCase.targetVal}">
                         <td>
                             <label>${switchCase.name}</label>
                             <div>${switchCase.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
