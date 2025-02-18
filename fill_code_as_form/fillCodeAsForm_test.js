@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.02");
+console.group("4eDo script fill_code_as_form v2.03");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -139,19 +139,7 @@ function drawForm(id) {
     let table = document.createElement('table');
 
     targetTmpl.form.forEach(field => {
-		renderFormField(field, table);
-    });
-
-    table.addEventListener('change', function(event) {
-        if (event.target.tagName === 'SELECT') {
-            const selectElement = event.target;
-            const fieldTmpl = selectElement.id.replace('field_', '');
-            const field = targetTmpl.form.find(f => f.tmpl === fieldTmpl);
-
-            if (field && field.switch && Array.isArray(field.switch)) {
-                handleSwitchFields(field, table, selectElement);
-            }
-        }
+        renderFormField(field, table);
     });
 
     targetForm.appendChild(table);
@@ -248,43 +236,42 @@ function renderFormField(field, table, parentTmpl = null) {
         inputElement.addEventListener('change', function(event) {
             handleSwitchFields(field, table, event.target);
         });
+        // Render nested switch cases, but hide them initially
+        field.switch.forEach(switchCase => {
+            let switchRow = document.createElement('tr');
+            switchRow.classList.add(`switch-case-${field.tmpl}`);
+            switchRow.hidden = true; // Hide by default
+
+            let switchCell = document.createElement('td');
+            switchCell.colSpan = 2; // Span both columns
+
+            let tempTable = document.createElement('table');
+            renderFormField(switchCase, tempTable);
+            switchCell.appendChild(tempTable);
+            switchRow.appendChild(switchCell);
+            table.appendChild(switchRow);
+        });
     }
 }
 
 function handleSwitchFields(field, table, selectElement) {
-    const selectedValue = selectElement.value;
-    const switchClass = `switch-${field.tmpl}`;
+  const selectedValue = selectElement.value;
+  const fieldTmpl = field.tmpl;
 
-    let existingSwitchRows = table.querySelectorAll(`.${switchClass}`);
-    existingSwitchRows.forEach(row => row.remove());
+  if (field.switch && Array.isArray(field.switch)) {
+    field.switch.forEach(switchCase => {
+      const targetVal = String(switchCase.targetVal);
+      const switchCaseClass = `switch-case-${fieldTmpl}`;
+      const switchRows = table.querySelectorAll(`.${switchCaseClass}`);
+      const shouldShow = selectedValue === targetVal;
 
-    if (field.switch && Array.isArray(field.switch)) {
-        let switchCase = field.switch.find(caseItem => String(caseItem.targetVal) === selectedValue);
-        if (switchCase) {
-            let newRow = document.createElement('tr');
-            newRow.classList.add(switchClass);
-            let newCell = document.createElement('td');
-            newCell.colSpan = 2;
-
-            let tempTable = document.createElement('table');
-            renderFormField(switchCase, tempTable); // Render the switch case content
-
-            newCell.appendChild(tempTable.querySelector('tr'));
-            newRow.appendChild(newCell);
-            table.appendChild(newRow);
-
-            if (switchCase.type === 'select' && switchCase.switch && Array.isArray(switchCase.switch)) {
-              const nestedSelect = tempTable.querySelector('select');
-              if (nestedSelect) {
-                  nestedSelect.addEventListener('change', function(event) {
-                      handleSwitchFields(switchCase, tempTable, event.target);
-                  });
-              }
-            }
-        }
-    } else {
-        console.warn("field.switch is not a valid array", field.switch);
-    }
+      switchRows.forEach(row => {
+        row.hidden = !shouldShow;
+      });
+    });
+  } else {
+    console.warn("field.switch is not a valid array", field.switch);
+  }
 }
 
 function fillCode(id) {
