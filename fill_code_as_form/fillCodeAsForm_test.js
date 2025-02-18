@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.03");
+console.group("4eDo script fill_code_as_form v2.04");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -150,112 +150,116 @@ function drawForm(id) {
     targetForm.appendChild(button);
 }
 
-function renderFormField(field, table, parentTmpl = null) {
-    let row = document.createElement('tr');
-    let labelCell = document.createElement('td');
-    let label = document.createElement('label');
-    label.innerText = field.name;
-    let labelDescr = document.createElement('div');
-    labelDescr.innerText = field.info
-        .replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`)
-        .replaceAll("<br>", `\n\n`);
-    labelCell.appendChild(label);
-    labelCell.appendChild(labelDescr);
+function renderFormField(field, table, parentRow = null) {
+  let row = document.createElement('tr');
+  let labelCell = document.createElement('td');
+  let label = document.createElement('label');
+  label.innerText = field.name;
+  let labelDescr = document.createElement('div');
+  labelDescr.innerText = field.info
+      .replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`)
+      .replaceAll("<br>", `\n\n`);
+  labelCell.appendChild(label);
+  labelCell.appendChild(labelDescr);
 
-    let inputCell = document.createElement('td');
-    let inputElement;
+  let inputCell = document.createElement('td');
+  let inputElement;
 
-    if (field.type === 'text') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'text';
-        if (field.default) {
-            inputElement.value = field.default;
-        }
-    } else if (field.type === 'textarea') {
-        inputElement = document.createElement('textarea');
-        if (field.default) {
-            inputElement.innerText = field.default;
-        }
-    } else if (field.type === 'number') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'number';
-        if (field.default) {
-            inputElement.value = field.default;
-        }
-    } else if (field.type === 'select') {
-        inputElement = document.createElement('select');
+  if (field.type === 'text') {
+      inputElement = document.createElement('input');
+      inputElement.type = 'text';
+      if (field.default) {
+          inputElement.value = field.default;
+      }
+  } else if (field.type === 'textarea') {
+      inputElement = document.createElement('textarea');
+      if (field.default) {
+          inputElement.innerText = field.default;
+      }
+  } else if (field.type === 'number') {
+      inputElement = document.createElement('input');
+      inputElement.type = 'number';
+      if (field.default) {
+          inputElement.value = field.default;
+      }
+  } else if (field.type === 'select') {
+      inputElement = document.createElement('select');
 
-        if (field.addEmptyOpt) {
-            let option = document.createElement('option');
-            option.value = "none";
-            option.innerText = field.addEmptyOpt;
-            inputElement.appendChild(option);
-        }
+      if (field.addEmptyOpt) {
+          let option = document.createElement('option');
+          option.value = "none";
+          option.innerText = field.addEmptyOpt;
+          inputElement.appendChild(option);
+      }
 
-        if (field.optList) {
-            field.optList.forEach(opt => {
-                let option = document.createElement('option');
-                option.value = opt;
-                option.innerText = opt;
-                inputElement.appendChild(option);
-            });
-        }
+      if (field.optList) {
+          field.optList.forEach(opt => {
+              let option = document.createElement('option');
+              option.value = opt;
+              option.innerText = opt;
+              inputElement.appendChild(option);
+          });
+      }
 
-        if (field.optValAndNameList) {
-            field.optValAndNameList.forEach(opt => {
-                let option = document.createElement('option');
-                option.value = opt.val;
-                option.innerText = opt.name;
-                inputElement.appendChild(option);
-            });
-        }
-        if (field.switch && Array.isArray(field.switch)) {
-            inputElement.addEventListener('change', function (event) {
-                handleSwitchFields(field, table, event.target);
-            });
-        }
+      if (field.optValAndNameList) {
+          field.optValAndNameList.forEach(opt => {
+              let option = document.createElement('option');
+              option.value = opt.val;
+              option.innerText = opt.name;
+              inputElement.appendChild(option);
+          });
+      }
+
+    // Добавляем обработчик событий для select, если есть switch
+    if (field.switch && Array.isArray(field.switch)) {
+        inputElement.addEventListener('change', function() {
+            handleSwitchFields(field, row, table); // Передаем row и table
+        });
     }
 
-    if (field.textTransform) {
-        inputElement.setAttribute('data-textTransform', field.textTransform);
-    }
+  }
 
-    if (field.valIfEmpty) {
-        inputElement.setAttribute('data-valIfEmpty', field.valIfEmpty);
-    }
+  if (field.textTransform) {
+      inputElement.setAttribute('data-textTransform', field.textTransform);
+  }
 
-    inputElement.id = `field_${field.tmpl}`;
-    inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
-    inputCell.appendChild(inputElement);
+  if (field.valIfEmpty) {
+      inputElement.setAttribute('data-valIfEmpty', field.valIfEmpty);
+  }
 
-    row.appendChild(labelCell);
-    row.appendChild(inputCell);
+  inputElement.id = `field_${field.tmpl}`;
+  inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
+  inputCell.appendChild(inputElement);
 
-    table.appendChild(row);
+  row.appendChild(labelCell);
+  row.appendChild(inputCell);
+
+  table.appendChild(row);
 }
 
-function handleSwitchFields(field, table, selectElement) {
-    const selectedValue = selectElement.value;
-    const switchClass = `switch-${field.tmpl}`;
-    let existingSwitchRows = table.querySelectorAll(`.${switchClass}`);
+function handleSwitchFields(field, row, parentTable) {
+    // Удаляем предыдущие switch-поля
+    let switchCell = row.querySelector('.switch-cell');
+    if (switchCell) {
+        switchCell.remove();
+    }
 
-    existingSwitchRows.forEach(row => {
-        row.remove();
-    });
+    let selectElement = document.getElementById(`field_${field.tmpl}`);
+    let selectedValue = selectElement.value;
 
     if (field.switch && Array.isArray(field.switch)) {
         let switchCase = field.switch.find(caseItem => String(caseItem.targetVal) === selectedValue);
+
         if (switchCase) {
-            let newRow = document.createElement('tr');
-            newRow.classList.add(switchClass);
+            // Создаем ячейку для switch-поля
+            let switchCell = document.createElement('td');
+            switchCell.className = 'switch-cell';
+            row.appendChild(switchCell);
 
-            let newCell = document.createElement('td');
-            newCell.colSpan = 2;
-            newRow.appendChild(newCell);
-            table.appendChild(newRow);
-
+            // Создаем таблицу для switch-поля
             let switchTable = document.createElement('table');
-            newCell.appendChild(switchTable);
+            switchCell.appendChild(switchTable);
+
             renderFormField(switchCase, switchTable);
         }
     } else {
