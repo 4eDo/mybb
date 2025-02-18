@@ -339,7 +339,15 @@ function fillCode(id) {
             let after = field?.wrapper?.after || '';
             inputValue = before + inputValue + after;
 
-            code = code.replaceAll(placeholder, inputValue);
+            if(inputValue == "none") {
+				let valIfEmpty = element ? element.getAttribute("data-valIfEmpty") : null;
+                if (valIfEmpty) {
+                    inputValue = valIfEmpty == "none" ? "" : valIfEmpty;
+                    code = code.replaceAll(placeholder, inputValue);
+                }
+			} else {
+				code = code.replaceAll(placeholder, inputValue);
+			}
         } else {
             let valIfEmpty = element ? element.getAttribute("data-valIfEmpty") : null;
             if (valIfEmpty) {
