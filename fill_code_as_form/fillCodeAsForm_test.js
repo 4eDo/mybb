@@ -313,7 +313,8 @@ function fillCode(id) {
     // Flatten the form to get all tmpls
     let flattenedForm = flattenForm(selectedTemplate.form);
     let allTmpls = new Set(flattenedForm.map(field => field.tmpl));
-
+	console.log(flattenedForm);
+	console.log(allTmpls);
     allTmpls.forEach(tmpl => {
         let placeholder = `{{${tmpl}}}`;
         let element = document.getElementById(`field_${tmpl}`);
@@ -340,11 +341,7 @@ function fillCode(id) {
             inputValue = before + inputValue + after;
 
             if(inputValue == "none") {
-				let valIfEmpty = element ? element.getAttribute("data-valIfEmpty") : null;
-                if (valIfEmpty) {
-                    inputValue = valIfEmpty == "none" ? "" : valIfEmpty;
-                    code = code.replaceAll(placeholder, inputValue);
-                }
+				code = code.replaceAll(placeholder, "");
 			} else {
 				code = code.replaceAll(placeholder, inputValue);
 			}
