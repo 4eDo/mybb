@@ -303,29 +303,24 @@ function fillCode(id) {
     if (!selectedTemplate) { console.error('Шаблон не найден.'); return; }
     let code = selectedTemplate.code;
 
-    let allTmpls = new Set();
-    selectedTemplate.form.forEach(field => {
-        allTmpls.add(field.tmpl);
-        if (field.switch) {
-            field.switch.forEach(switchCase => {
-                allTmpls.add(switchCase.tmpl);
-            });
-        }
-    });
+    // Flatten the form to get all tmpls
+    let flattenedForm = flattenForm(selectedTemplate.form);
+    let allTmpls = new Set(flattenedForm.map(field => field.tmpl));
 
     allTmpls.forEach(tmpl => {
         let placeholder = `{{${tmpl}}}`;
         let element = document.getElementById(`field_${tmpl}`);
         let inputValue = element ? element.value : null;
-        let field = selectedTemplate.form.find(f => f.tmpl === tmpl) ||
-            (selectedTemplate.form.find(f => f.switch?.find(s => s.tmpl === tmpl))?.switch?.find(s => s.tmpl === tmpl));
+
+        // Find the field in the flattened form
+        let field = flattenedForm.find(f => f.tmpl === tmpl);
 
         if (!element) {
-          let valIfEmpty = field?.valIfEmpty;
-          if (valIfEmpty) {
-            inputValue = valIfEmpty === "none" ? "" : valIfEmpty;
-            code = code.replaceAll(placeholder, inputValue);
-          }
+            let valIfEmpty = field?.valIfEmpty;
+            if (valIfEmpty) {
+                inputValue = valIfEmpty === "none" ? "" : valIfEmpty;
+                code = code.replaceAll(placeholder, inputValue);
+            }
         } else if (inputValue) {
             if (element.getAttribute("data-textTransform")) {
                 switch (element.getAttribute("data-textTransform")) {
