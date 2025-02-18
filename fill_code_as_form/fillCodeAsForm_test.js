@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.16");
+console.group("4eDo script fill_code_as_form v2.17");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -272,12 +272,11 @@ function handleSwitchFields(selectElement, fieldTmpl) {
     switchRows.forEach(row => {
         const targetVal = row.dataset.targetVal;
         const shouldShow = targetVal === selectedValue;
-        row.hidden = !shouldShow;
 
-        // Clear the input values if the row is hidden
+        // Clear the input values BEFORE changing visibility
         const inputs = row.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
-            if (!shouldShow) { // Очищаем только скрытые поля
+            if (!shouldShow) { // Clear values of hidden fields
                 if (input.type === 'select-one') {
                     input.selectedIndex = 0; // Reset select to the first option
                 } else {
@@ -285,6 +284,8 @@ function handleSwitchFields(selectElement, fieldTmpl) {
                 }
             }
         });
+
+        row.hidden = !shouldShow; // Set visibility AFTER clearing values
     });
 }
 
