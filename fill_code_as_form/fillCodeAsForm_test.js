@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.03");
+console.group("4eDo script fill_code_as_form v2.04");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -228,7 +228,6 @@ function renderFormField(field, table, parentTmpl = null) {
 
     row.appendChild(labelCell);
     row.appendChild(inputCell);
-
     table.appendChild(row);
 
     // Handle switch cases (including nested selects)
@@ -245,9 +244,7 @@ function renderFormField(field, table, parentTmpl = null) {
             let switchCell = document.createElement('td');
             switchCell.colSpan = 2; // Span both columns
 
-            let tempTable = document.createElement('table');
-            renderFormField(switchCase, tempTable);
-            switchCell.appendChild(tempTable);
+            renderFormField(switchCase, table); // Pass the original table
             switchRow.appendChild(switchCell);
             table.appendChild(switchRow);
         });
@@ -255,23 +252,23 @@ function renderFormField(field, table, parentTmpl = null) {
 }
 
 function handleSwitchFields(field, table, selectElement) {
-  const selectedValue = selectElement.value;
-  const fieldTmpl = field.tmpl;
+    const selectedValue = selectElement.value;
+    const fieldTmpl = field.tmpl;
 
-  if (field.switch && Array.isArray(field.switch)) {
-    field.switch.forEach(switchCase => {
-      const targetVal = String(switchCase.targetVal);
-      const switchCaseClass = `switch-case-${fieldTmpl}`;
-      const switchRows = table.querySelectorAll(`.${switchCaseClass}`);
-      const shouldShow = selectedValue === targetVal;
+    if (field.switch && Array.isArray(field.switch)) {
+        field.switch.forEach(switchCase => {
+            const targetVal = String(switchCase.targetVal);
+            const switchCaseClass = `switch-case-${fieldTmpl}`;
+            const switchRows = table.querySelectorAll(`.${switchCaseClass}`);
+            const shouldShow = selectedValue === targetVal;
 
-      switchRows.forEach(row => {
-        row.hidden = !shouldShow;
-      });
-    });
-  } else {
-    console.warn("field.switch is not a valid array", field.switch);
-  }
+            switchRows.forEach(row => {
+                row.hidden = !shouldShow;
+            });
+        });
+    } else {
+        console.warn("field.switch is not a valid array", field.switch);
+    }
 }
 
 function fillCode(id) {
