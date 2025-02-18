@@ -301,7 +301,6 @@ function flattenForm(form, parentTmpl = null, targetVal = null) {
             delete field.switch; // Remove switch to avoid processing it again
         }
     });
-	console.log(flattened);
     return flattened;
 }
 
@@ -312,7 +311,11 @@ function fillCode(id) {
 
     // Flatten the form to get all tmpls
     let flattenedForm = flattenForm(selectedTemplate.form);
-    let allTmpls = new Set(flattenedForm.map(field => field.tmpl));
+    let allTmpls = new Set();
+	const allFormElements = document.querySelectorAll('[id^="field_"]');
+	allFormElements.forEach(element => {
+	    allTmpls.add(element.id.replace('field_', ''));
+	});
 	
 	console.log(allTmpls);
     allTmpls.forEach(tmpl => {
