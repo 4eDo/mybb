@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.09");
+console.group("4eDo script fill_code_as_form v2.10");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -143,6 +143,13 @@ function drawForm(id) {
     table.innerHTML = formHTML;
 
     targetForm.appendChild(table);
+
+    // Add the "Get Code" button
+    let button = document.createElement('div');
+    button.id = 'tmpl_get-code-button';
+    button.innerText = 'Получить код';
+    button.setAttribute('onclick', `fillCode(${id})`);
+    targetForm.appendChild(button);
 }
 
 function renderFormField(field, isInSwitch = false) {
