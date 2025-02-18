@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.15");
+console.group("4eDo script fill_code_as_form v2.16");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -237,14 +237,14 @@ function generateFormHTML(form) {
             inputElement.setAttribute("onchange", switchEvent);
 
             switchCasesHTML = field.switch.map(switchCase => {
-                const switchContent = renderFormField(switchCase);
+                const switchContent = generateFormHTML([switchCase]); // Рекурсивный вызов!
                 return `
                     <tr class="switch-case-${field.tmpl}" hidden data-target-val="${switchCase.targetVal || ''}">
                         <td>
                             <label>${switchCase.name}</label>
                             <div>${switchCase.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
                         </td>
-                        <td>${switchContent.element ? switchContent.element.outerHTML : ''}</td>
+                        <td>${switchContent}</td>
                     </tr>
                 `;
             }).join('');
@@ -273,6 +273,18 @@ function handleSwitchFields(selectElement, fieldTmpl) {
         const targetVal = row.dataset.targetVal;
         const shouldShow = targetVal === selectedValue;
         row.hidden = !shouldShow;
+
+        // Clear the input values if the row is hidden
+        const inputs = row.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            if (!shouldShow) { // Очищаем только скрытые поля
+                if (input.type === 'select-one') {
+                    input.selectedIndex = 0; // Reset select to the first option
+                } else {
+                    input.value = ''; // Clear text inputs and textareas
+                }
+            }
+        });
     });
 }
 
