@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.02");
+console.group("4eDo script fill_code_as_form v2.03");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -139,22 +139,8 @@ function drawForm(id) {
     let table = document.createElement('table');
 
     targetTmpl.form.forEach(field => {
-		renderFormField(field, table);
+        renderFormField(field, table);
     });
-
-    table.addEventListener('change', function(event) {
-        if (event.target.tagName === 'SELECT') {
-            const selectElement = event.target;
-            const fieldTmpl = selectElement.id.replace('field_', '');
-            const field = targetTmpl.form.find(f => f.tmpl === fieldTmpl);
-
-            if (field && field.switch && Array.isArray(field.switch)) {
-                handleSwitchFields(field, table, selectElement);
-            }
-        }
-    });
-
-    targetForm.appendChild(table);
 
     let button = document.createElement('div');
     button.id = 'tmpl_get-code-button';
@@ -223,7 +209,11 @@ function renderFormField(field, table, parentTmpl = null) {
                 inputElement.appendChild(option);
             });
         }
-
+        if (field.switch && Array.isArray(field.switch)) {
+            inputElement.addEventListener('change', function (event) {
+                handleSwitchFields(field, table, event.target);
+            });
+        }
     }
 
     if (field.textTransform) {
@@ -242,45 +232,31 @@ function renderFormField(field, table, parentTmpl = null) {
     row.appendChild(inputCell);
 
     table.appendChild(row);
-
-    // Handle switch cases (including nested selects)
-    if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
-        inputElement.addEventListener('change', function(event) {
-            handleSwitchFields(field, table, event.target);
-        });
-    }
 }
 
 function handleSwitchFields(field, table, selectElement) {
     const selectedValue = selectElement.value;
     const switchClass = `switch-${field.tmpl}`;
-
     let existingSwitchRows = table.querySelectorAll(`.${switchClass}`);
-    existingSwitchRows.forEach(row => row.remove());
+
+    existingSwitchRows.forEach(row => {
+        row.remove();
+    });
 
     if (field.switch && Array.isArray(field.switch)) {
         let switchCase = field.switch.find(caseItem => String(caseItem.targetVal) === selectedValue);
         if (switchCase) {
             let newRow = document.createElement('tr');
             newRow.classList.add(switchClass);
+
             let newCell = document.createElement('td');
             newCell.colSpan = 2;
-
-            let tempTable = document.createElement('table');
-            renderFormField(switchCase, tempTable); // Render the switch case content
-
-            newCell.appendChild(tempTable.querySelector('tr'));
             newRow.appendChild(newCell);
             table.appendChild(newRow);
 
-            if (switchCase.type === 'select' && switchCase.switch && Array.isArray(switchCase.switch)) {
-              const nestedSelect = tempTable.querySelector('select');
-              if (nestedSelect) {
-                  nestedSelect.addEventListener('change', function(event) {
-                      handleSwitchFields(switchCase, tempTable, event.target);
-                  });
-              }
-            }
+            let switchTable = document.createElement('table');
+            newCell.appendChild(switchTable);
+            renderFormField(switchCase, switchTable);
         }
     } else {
         console.warn("field.switch is not a valid array", field.switch);
