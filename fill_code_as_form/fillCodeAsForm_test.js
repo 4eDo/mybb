@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.10");
+console.group("4eDo script fill_code_as_form v2.11");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -262,24 +262,25 @@ function handleSwitchFields(selectElement, fieldTmpl) {
     const selectedValue = selectElement.value;
     const switchClass = `switch-case-${fieldTmpl}`;
     const switchRows = document.querySelectorAll(`.${switchClass}`);
-    let hasMatch = false;
 
     switchRows.forEach(row => {
         const targetVal = row.dataset.targetVal;
         const shouldShow = targetVal === selectedValue;
 
         row.hidden = !shouldShow;
-        if (shouldShow) {
-            hasMatch = true;
+
+        // Clear the input values if the row is hidden
+        if (!shouldShow) {
+            const inputs = row.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                if (input.type === 'select-one') {
+                    input.selectedIndex = 0; // Reset select to the first option
+                } else {
+                    input.value = ''; // Clear text inputs and textareas
+                }
+            });
         }
     });
-
-    // If no match is found, hide all switchRows
-    if (!hasMatch) {
-        switchRows.forEach(row => {
-            row.hidden = true;
-        });
-    }
 }
 
 function fillCode(id) {
