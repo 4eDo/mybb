@@ -242,6 +242,13 @@ function renderFormField(field, table, parentTmpl = null) {
     row.appendChild(inputCell);
 
     table.appendChild(row);
+
+    // Handle switch cases (including nested selects)
+    if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
+        inputElement.addEventListener('change', function(event) {
+            handleSwitchFields(field, table, event.target);
+        });
+    }
 }
 
 function handleSwitchFields(field, table, selectElement) {
@@ -260,12 +267,20 @@ function handleSwitchFields(field, table, selectElement) {
             newCell.colSpan = 2;
 
             let tempTable = document.createElement('table');
-            renderFormField(switchCase, tempTable);
+            renderFormField(switchCase, tempTable); // Render the switch case content
 
             newCell.appendChild(tempTable.querySelector('tr'));
-
             newRow.appendChild(newCell);
             table.appendChild(newRow);
+
+            if (switchCase.type === 'select' && switchCase.switch && Array.isArray(switchCase.switch)) {
+              const nestedSelect = tempTable.querySelector('select');
+              if (nestedSelect) {
+                  nestedSelect.addEventListener('change', function(event) {
+                      handleSwitchFields(switchCase, tempTable, event.target);
+                  });
+              }
+            }
         }
     } else {
         console.warn("field.switch is not a valid array", field.switch);
