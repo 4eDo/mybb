@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.08");
+console.group("4eDo script fill_code_as_form v2.09");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -220,13 +220,13 @@ function generateFormHTML(form, table) {
         let switchCasesHTML = '';
         let switchEvent = '';
         if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
-            switchEvent = `handleSwitchFields(this, '${field.tmpl}', '${field.switch.map(s => s.targetVal).join(',')}')`
+            switchEvent = `handleSwitchFields(this, '${field.tmpl}')`
             inputElement.setAttribute("onchange", switchEvent);
             switchCasesHTML = field.switch.map(switchCase => {
                 let {element, field: switchCaseField } = renderFormField(switchCase, true);
                 const switchContent = element ? element.outerHTML : '';
                 return `
-                     <tr class="switch-case-${field.tmpl} hidden ${switchCase.targetVal}">
+                    <tr class="switch-case-${field.tmpl}" hidden data-target-val="${switchCase.targetVal || ''}">
                         <td>
                             <label>${switchCase.name}</label>
                             <div>${switchCase.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
@@ -251,19 +251,28 @@ function generateFormHTML(form, table) {
     return html;
 }
 
-function handleSwitchFields(selectElement, fieldTmpl, availableTargets) {
+function handleSwitchFields(selectElement, fieldTmpl) {
     const selectedValue = selectElement.value;
     const switchClass = `switch-case-${fieldTmpl}`;
-
-    const switchRows = document.querySelectorAll(`.${switchClass}`); // Search the entire document
+    const switchRows = document.querySelectorAll(`.${switchClass}`);
+    let hasMatch = false;
 
     switchRows.forEach(row => {
-        if (row.classList.contains(selectedValue)) {
-            row.classList.remove("hidden");
-        } else {
-            row.classList.add("hidden");
+        const targetVal = row.dataset.targetVal;
+        const shouldShow = targetVal === selectedValue;
+
+        row.hidden = !shouldShow;
+        if (shouldShow) {
+            hasMatch = true;
         }
     });
+
+    // If no match is found, hide all switchRows
+    if (!hasMatch) {
+        switchRows.forEach(row => {
+            row.hidden = true;
+        });
+    }
 }
 
 function fillCode(id) {
