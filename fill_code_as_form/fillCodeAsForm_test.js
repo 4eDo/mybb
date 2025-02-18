@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.19");
+console.group("4eDo script fill_code_as_form v2.20");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -138,8 +138,12 @@ function drawForm(id) {
     targetForm.innerHTML = `<div id="templateFormName">${targetTmpl.name}</div>`;
     let table = document.createElement('table');
 
+    // Flatten the form
+    let flattenedForm = flattenForm(targetTmpl.form);
+
     // Generate the entire form HTML
-    let formHTML = generateFormHTML(targetTmpl.form);
+    let formHTML = generateFormHTML(flattenedForm); // Pass the flattened form
+
     table.innerHTML = formHTML;
 
     targetForm.appendChild(table);
@@ -230,35 +234,19 @@ function generateFormHTML(form) {
     form.forEach(field => {
         let { element: inputElement, field: currentField } = renderFormField(field);
 
-        let switchCasesHTML = '';
-
-        if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
-            const switchEvent = `handleSwitchFields(this, '${field.tmpl}')`;
-            inputElement.setAttribute("onchange", switchEvent);
-
-            switchCasesHTML = field.switch.map(switchCase => {
-                let { element: switchElement, field: switchField } = renderFormField(switchCase);
-                return `
-                    <tr class="switch-case-${field.tmpl}" hidden data-target-val="${switchCase.targetVal || ''}">
-                        <td>
-                            <label>${switchCase.name}</label>
-                            <div>${switchCase.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
-                        </td>
-                        <td>${switchElement ? switchElement.outerHTML : ''}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
+        let isSwitchCase = field.parentTmpl !== null; // Check if it's a switch case
+        let rowClass = isSwitchCase ? `switch-case-${field.parentTmpl}` : '';
+        let hidden = isSwitchCase ? 'hidden' : '';
+        let targetVal = field.targetVal || '';
 
         html += `
-            <tr>
+            <tr class="${rowClass}" ${hidden} data-target-val="${targetVal}">
                 <td>
                     <label>${field.name}</label>
                     <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<a href='адрес_ссылки'>текст_ссылки</a>`).replaceAll("<br>", `\n\n`)}</div>
                 </td>
                 <td>${inputElement ? inputElement.outerHTML : ''}</td>
             </tr>
-            ${switchCasesHTML}
         `;
     });
     return html;
@@ -287,6 +275,25 @@ function handleSwitchFields(selectElement, fieldTmpl) {
 
         row.hidden = !shouldShow; // Set visibility AFTER clearing values
     });
+}
+
+function flattenForm(form, parentTmpl = null) {
+    let flattened = [];
+
+    form.forEach(field => {
+        let newField = { ...field, parentTmpl: parentTmpl }; // Add parentTmpl
+        flattened.push(newField);
+
+        if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
+            let switchCases = field.switch;
+            switchCases.forEach(switchCase => {
+                flattened.push(...flattenForm([switchCase], field.tmpl)); // Flatten switch cases
+            });
+            delete field.switch; // Remove switch to avoid processing it again
+        }
+    });
+
+    return flattened;
 }
 
 function fillCode(id) {
