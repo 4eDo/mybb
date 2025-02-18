@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.11");
+console.group("4eDo script fill_code_as_form v2.12");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -218,20 +218,21 @@ function renderFormField(field, isInSwitch = false) {
     };
 }
 
-function generateFormHTML(form, table) {
+function generateFormHTML(form) {
     let html = '';
 
     form.forEach(field => {
         let { element: inputElement, field: currentField } = renderFormField(field);
 
         let switchCasesHTML = '';
-        let switchEvent = '';
+
         if (field.type === 'select' && field.switch && Array.isArray(field.switch)) {
-            switchEvent = `handleSwitchFields(this, '${field.tmpl}')`
+            const switchEvent = `handleSwitchFields(this, '${field.tmpl}')`;
             inputElement.setAttribute("onchange", switchEvent);
+
             switchCasesHTML = field.switch.map(switchCase => {
-                let {element, field: switchCaseField } = renderFormField(switchCase, true);
-                const switchContent = element ? element.outerHTML : '';
+                // Рекурсивный вызов для обработки вложенных switch
+                const switchContent = generateFormHTML([switchCase]);
                 return `
                     <tr class="switch-case-${field.tmpl}" hidden data-target-val="${switchCase.targetVal || ''}">
                         <td>
