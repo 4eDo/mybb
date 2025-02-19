@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.26");
+console.group("4eDo script fill_code_as_form v2.27");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -138,23 +138,19 @@ function drawForm(id) {
     targetForm.innerHTML = `<div id="templateFormName">${targetTmpl.name}</div>`;
     let table = document.createElement('table');
 
-    // Flatten the form
-    let flattenedForm = flattenForm(targetTmpl.form);
-
-    // Generate the entire form HTML
-    let formHTML = generateFormHTML(flattenedForm); // Pass the flattened form
+    let formHTML = generateFormHTML(targetTmpl.form);
 
     table.innerHTML = formHTML;
 
-    targetForm.appendChild(table); // **Добавляем таблицу на страницу**
+    targetForm.appendChild(table);
 
-    // Initial hide/show based on select values
+    // Todo: fixme!
     table.querySelectorAll('select').forEach(selectElement => {
         const fieldTmpl = selectElement.id.replace('field_', '');
         selectElement.addEventListener('change', () => {
             handleSwitchFields(selectElement, fieldTmpl);
         });
-        handleSwitchFields(selectElement, fieldTmpl); // **Вызываем handleSwitchFields после добавления на страницу**
+        handleSwitchFields(selectElement, fieldTmpl);
     });
 
     // Add the "Get Code" button
@@ -165,7 +161,7 @@ function drawForm(id) {
     targetForm.appendChild(button);
 }
 
-function renderFormField(field, isInSwitch = false) {
+function renderFormField(field) {
     let inputElement;
 
     if (field.type === 'text') {
@@ -255,6 +251,7 @@ function generateFormHTML(form) {
     return html;
 }
 
+// FIXME
 function handleSwitchFields(selectElement, fieldTmpl) {
     const selectedValue = selectElement.value;
     const switchRows = document.querySelectorAll(`tr[data-parent-tmpl="${fieldTmpl}"]`);
@@ -286,45 +283,15 @@ function handleSwitchFields(selectElement, fieldTmpl) {
     });
 }
 
-function flattenForm(form, parentTmpl = null, targetVal = null) {
-    let flattened = [];
-
-    form.forEach(field => {
-        let newField = { ...field, parentTmpl: parentTmpl, targetVal: targetVal }; // Add parentTmpl and targetVal
-        flattened.push(newField);
-
-        if (field.type == 'select' && field.switch && Array.isArray(field.switch)) {
-            let switchCases = field.switch;
-            switchCases.forEach(switchCase => {
-                flattened.push(...flattenForm([switchCase], field.tmpl, switchCase.targetVal)); // Flatten switch cases
-            });
-            delete field.switch; // Remove switch to avoid processing it again
-        }
-    });
-    return flattened;
-}
-
 function fillCode(id) {
     let selectedTemplate = userTemplateList.find(template => template.id == id);
     if (!selectedTemplate) { console.error('Шаблон не найден.'); return; }
     let code = selectedTemplate.code;
 
-    // Flatten the form to get all tmpls
-    let flattenedForm = flattenForm(selectedTemplate.form);
-    let allTmpls = new Set();
-	const allFormElements = document.querySelectorAll('[id^="field_"]');
-	allFormElements.forEach(element => {
-	    allTmpls.add(element.id.replace('field_', ''));
-	});
-	
-	console.log(allTmpls);
-    allTmpls.forEach(tmpl => {
-        let placeholder = `{{${tmpl}}}`;
-        let element = document.getElementById(`field_${tmpl}`);
+    selectedTemplate.form.forEach(field => {
+        let placeholder = `{{${field.tmpl}}}`;
+        let element = document.getElementById(`field_${field.tmpl}`);
         let inputValue = element ? element.value : null;
-
-        // Find the field in the flattened form
-        let field = flattenedForm.find(f => f.tmpl == tmpl);
 
         if (!element) {
             let valIfEmpty = field?.valIfEmpty;
@@ -339,8 +306,8 @@ function fillCode(id) {
                     case "uppercase": inputValue = inputValue.toUpperCase(); break;
                 }
             }
-            let before = field?.wrapper?.before || '';
-            let after = field?.wrapper?.after || '';
+            let before = field?.wrapperBefore || '';
+            let after = field?.wrapperAfter || '';
             inputValue = before + inputValue + after;
 
             if(inputValue == "none") {
