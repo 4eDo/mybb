@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.29");
+console.group("4eDo script fill_code_as_form v2.0.30");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -260,19 +260,12 @@ function handleSwitchFields(selectElement, parentTmpl) {
     allRows.forEach(row => {
         const parentTemplate = row.dataset.parentTmpl;
         if (parentTemplate === parentTmpl) {
-            row.hidden = true;
-            const inputs = row.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                if (input.type === 'select-one') {
-                    input.selectedIndex = 0;
-                } else {
-                    input.value = '';
-                }
-            });
+            row.hidden = true; 
+            resetInputs(row);
         }
     });
 
-    const childRows = findChildRows(allRows, parentTmpl, selectedValue);
+    const childRows = findChildRows(allRows, parentTmpl);
 
     childRows.forEach(row => {
         const targetVal = row.dataset.targetVal;
@@ -281,18 +274,29 @@ function handleSwitchFields(selectElement, parentTmpl) {
         }
     });
 }
-
-function findChildRows(allRows, parentTmpl, selectedValue) {
+function findChildRows(allRows, parentTmpl) {
     let result = [];
     allRows.forEach(row => {
         const parentTemplate = row.dataset.parentTmpl;
         if (parentTemplate === parentTmpl) {
             result.push(row);
-            result = result.concat(findChildRows(allRows, row.dataset.targetVal, selectedValue));
+            result = result.concat(findChildRows(allRows, row.dataset.targetVal));
         }
     });
     return result;
 }
+
+function resetInputs(row) {
+    const inputs = row.querySelectorAll('input, textarea, select');
+    inputs.forEach(input => {
+        if (input.type === 'select-one') {
+            input.selectedIndex = 0;
+        } else {
+            input.value = '';
+        }
+    });
+}
+
 
 
 function fillCode(id) {
