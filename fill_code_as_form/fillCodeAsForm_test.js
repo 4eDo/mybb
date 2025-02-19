@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.27");
+console.group("4eDo script fill_code_as_form v2.28");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -131,7 +131,7 @@ function drawForm(id) {
         return;
     }
 
-    console.log("Target Template:", targetTmpl);
+    // console.log("Target Template:", targetTmpl);
     showTargetForm();
 
     let targetForm = document.getElementById('targetForm');
@@ -233,7 +233,7 @@ function generateFormHTML(form) {
     form.forEach(field => {
         let { element: inputElement, field: currentField } = renderFormField(field);
 
-        let isSwitchCase = field.parentTmpl !== null; // Check if it's a switch case
+        let isSwitchCase = field?.parentTmpl || false; 
         let hidden = isSwitchCase ? 'hidden' : '';
         let targetVal = field.targetVal || '';
         let parentTmpl = field.parentTmpl || '';
