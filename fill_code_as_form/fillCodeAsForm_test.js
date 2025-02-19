@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.28");
+console.group("4eDo script fill_code_as_form v2.0.29");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -148,9 +148,9 @@ function drawForm(id) {
     table.querySelectorAll('select').forEach(selectElement => {
         const fieldTmpl = selectElement.id.replace('field_', '');
         selectElement.addEventListener('change', () => {
-            handleSwitchFields(selectElement, fieldTmpl);
+            handleSwitchFields(selectElement, fieldTmpl, targetTmpl.form);
         });
-        handleSwitchFields(selectElement, fieldTmpl);
+        handleSwitchFields(selectElement, fieldTmpl, targetTmpl.form);
     });
 
     // Add the "Get Code" button
@@ -252,36 +252,48 @@ function generateFormHTML(form) {
 }
 
 // FIXME
-function handleSwitchFields(selectElement, fieldTmpl) {
+function handleSwitchFields(selectElement, parentTmpl) {
     const selectedValue = selectElement.value;
-    const switchRows = document.querySelectorAll(`tr[data-parent-tmpl="${fieldTmpl}"]`);
 
-    switchRows.forEach(row => {
-        const targetVal = row.dataset.targetVal;
-        const shouldShow = targetVal === selectedValue;
-
-        // Clear the input values if the row is hidden
-        const inputs = row.querySelectorAll('input, textarea, select');
-        inputs.forEach(input => {
-            if (!shouldShow) { // Clear values of hidden fields
+    const allRows = document.querySelectorAll('tr[data-parent-tmpl]');
+    
+    allRows.forEach(row => {
+        const parentTemplate = row.dataset.parentTmpl;
+        if (parentTemplate === parentTmpl) {
+            row.hidden = true;
+            const inputs = row.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
                 if (input.type === 'select-one') {
-                    input.selectedIndex = 0; // Reset select to the first option
+                    input.selectedIndex = 0;
                 } else {
-                    input.value = ''; // Clear text inputs and textareas
+                    input.value = '';
                 }
-            }
-        });
-
-        row.hidden = !shouldShow; // Set visibility AFTER clearing values
+            });
+        }
     });
 
-    // Call handleSwitchFields for nested selects
-    const nestedSelects = document.querySelectorAll(`select[data-parent-tmpl="${fieldTmpl}"]`);
-    nestedSelects.forEach(nestedSelect => {
-        const nestedFieldTmpl = nestedSelect.id.replace('field_', '');
-        handleSwitchFields(nestedSelect, nestedFieldTmpl);
+    const childRows = findChildRows(allRows, parentTmpl, selectedValue);
+
+    childRows.forEach(row => {
+        const targetVal = row.dataset.targetVal;
+        if (targetVal === selectedValue) {
+            row.hidden = false;
+        }
     });
 }
+
+function findChildRows(allRows, parentTmpl, selectedValue) {
+    let result = [];
+    allRows.forEach(row => {
+        const parentTemplate = row.dataset.parentTmpl;
+        if (parentTemplate === parentTmpl) {
+            result.push(row);
+            result = result.concat(findChildRows(allRows, row.dataset.targetVal, selectedValue));
+        }
+    });
+    return result;
+}
+
 
 function fillCode(id) {
     let selectedTemplate = userTemplateList.find(template => template.id == id);
