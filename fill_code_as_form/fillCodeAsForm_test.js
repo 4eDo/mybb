@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.50");
+console.group("4eDo script fill_code_as_form v2.0.51");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -225,6 +225,8 @@ function drawForm(id) {
 function renderFormField(field) {
     let inputElement;
 
+	console.log(field);
+
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
@@ -332,7 +334,7 @@ function handleSwitchFields(selectElement, parentTmpl) {
 }
 
 function setDefaultValue(input) {
-	console.log("Set default to input " + input.id);
+	// console.log("Set default to input " + input.id);
     const defaultValue = input.dataset.default;
     if (defaultValue) {
         if (input.type === 'select-one') {
@@ -362,7 +364,7 @@ function hideAllChildren(parentTmpl) {
 }
 
 function resetInput(input) {
-	console.log("Reset input " + input.id);
+	// console.log("Reset input " + input.id);
     if (input.type === 'select-one') {
         input.selectedIndex = 0;
     } else {
