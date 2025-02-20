@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.34");
+console.group("4eDo script fill_code_as_form v2.0.35");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -317,10 +317,19 @@ function fillCode(id) {
     for (const field of selectedTemplate.form) {
         const placeholder = `{{${field.tmpl}}}`;
         const element = document.getElementById(`field_${field.tmpl}`);
-        let inputValue = element ? element.value : field?.valIfEmpty === "none" ? "" : field?.valIfEmpty || '';
+        let inputValue = '';
 
-        if (!element && field?.valIfEmpty === undefined) {
-            continue; // Skip this field if element doesn't exist and no valIfEmpty
+        if (element) {
+            inputValue = element.value;
+            if (!inputValue && !field.valIfEmpty) {
+                continue; // Skip if input is empty and no valIfEmpty is defined
+            }
+        }
+
+        if (field.valIfEmpty === "none") {
+            inputValue = "";
+        } else if (field.valIfEmpty) {
+            inputValue = field.valIfEmpty;
         }
 
         if (element && element.getAttribute("data-textTransform")) {
