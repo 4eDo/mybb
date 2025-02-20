@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.38");
+console.group("4eDo script fill_code_as_form v2.0.39");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -12,22 +12,62 @@ var currentTopic = new URLSearchParams(window.location.search).get('id') ? new U
 
 var userTemplateList = [];
 
+
+/* ----------------------------------------------------------- */
+/* ОБРАБОТКА КНОПОК
+   выбора шаблонов, закрытия, показа списка и т.д. */
+/* ----------------------------------------------------------- */
 const overlay = document.querySelector('.tmpl_overlay');
 const popup = document.querySelector('.tmpl_popup');
 const navlinks = document.getElementById('pun-navlinks');
-
+const backButton = document.getElementById('tmpl_back-button');
+const closeButton = document.getElementById('tmpl_close-button');
 function showTemplateWindow() {
     overlay.style.display = 'block';
     popup.style.display = 'block';
     if (needHideNavlinks) navlinks.style.display = 'none';
 }
-
 function hideTemplateWindow() {
     overlay.style.display = 'none';
     popup.style.display = 'none';
     if (needHideNavlinks) navlinks.style.display = 'block';
 }
+function handleBackButtonEnter(event) {
+    if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault();
+        showTemplatesList();
+    }
+}
+function handleCloseButtonEnter(event) {
+    if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault();
+        hideTemplateWindow();
+    }
+}
+if (backButton) {
+    backButton.setAttribute('role', 'button');
+    backButton.tabIndex = 0;
+    backButton.addEventListener('keydown', handleBackButtonEnter);
+}
+if (closeButton) {
+    closeButton.setAttribute('role', 'button');
+    closeButton.tabIndex = 0;
+    closeButton.addEventListener('keydown', handleCloseButtonEnter);
+}
+function showTargetForm() {
+    document.getElementById('templatesList').style.display = 'none';
+    document.getElementById('targetForm').style.display = 'flex';
+    document.getElementById('tmpl_back-button').style.display = 'flex';
+}
+function showTemplatesList() {
+    document.getElementById('templatesList').style.display = 'flex';
+    document.getElementById('targetForm').style.display = 'none';
+    document.getElementById('tmpl_back-button').style.display = 'none';
+}
 
+/* ----------------------------------------------------------- */
+/* ИНИЦИАЛИЗАЦИЯ СПИСКА ШАБЛОНОВ */
+/* ----------------------------------------------------------- */
 function ajaxFetch(url, options = {}) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -133,6 +173,9 @@ function populateTemplateList() {
     }
 }
 
+/* ----------------------------------------------------------- */
+/* ОТРИСОВКА ФОРМЫ */
+/* ----------------------------------------------------------- */
 function drawForm(id) {
     let targetTmpl = userTemplateList.find(template => template.id === id);
 
@@ -325,6 +368,9 @@ function resetInput(input) {
     }
 }
 
+/* ----------------------------------------------------------- */
+/* ЗАПОЛНЕНИЕ КОДА ПО ФОРМЕ */
+/* ----------------------------------------------------------- */
 function fillCode(id) {
     const selectedTemplate = userTemplateList.find(template => template.id === id);
     if (!selectedTemplate) {
@@ -370,17 +416,6 @@ function fillCode(id) {
     console.log("Сгенерированный код:", code);
     insert(code);
     hideTemplateWindow();
-}
-
-function showTargetForm() {
-    document.getElementById('templatesList').style.display = 'none';
-    document.getElementById('targetForm').style.display = 'flex';
-    document.getElementById('tmpl_back-button').style.display = 'flex';
-}
-function showTemplatesList() {
-    document.getElementById('templatesList').style.display = 'flex';
-    document.getElementById('targetForm').style.display = 'none';
-    document.getElementById('tmpl_back-button').style.display = 'none';
 }
 
 fetchAndParseTemplates();
