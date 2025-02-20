@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.39");
+console.group("4eDo script fill_code_as_form v2.0.41");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -403,9 +403,11 @@ function fillCode(id) {
             inputValue = transform === 'lowercase' ? inputValue.toLowerCase() : transform === 'uppercase' ? inputValue.toUpperCase() : inputValue;
         }
 
-        const before = field?.wrapperBefore || '';
-        const after = field?.wrapperAfter || '';
-        inputValue = before + inputValue + after;
+        if (inputValue) {
+			const before = field?.wrapperBefore || '';
+	        const after = field?.wrapperAfter || '';
+            inputValue = before + inputValue + after;
+        }
 
         code = code.replaceAll(placeholder, inputValue);
     }
