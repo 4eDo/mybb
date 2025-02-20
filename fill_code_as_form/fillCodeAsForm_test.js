@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.48");
+console.group("4eDo script fill_code_as_form v2.0.41");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -184,6 +184,7 @@ function drawForm(id) {
         return;
     }
 
+    // console.log("Target Template:", targetTmpl);
     showTargetForm();
 
     let targetForm = document.getElementById('targetForm');
@@ -207,16 +208,16 @@ function drawForm(id) {
     let button = document.createElement('div');
     button.id = 'tmpl_get-code-button';
     button.innerText = 'Получить код';
-    button.setAttribute('tabindex', '0');
-    button.setAttribute('role', 'button');
+	button.setAttribute('tabindex', '0');
+	button.setAttribute('role', 'button');
     button.setAttribute('onclick', `fillCode(${id})`);
 
-    button.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter' || event.keyCode === 13) {
-            event.preventDefault();
-            fillCode(id);
-        }
-    });
+	button.addEventListener('keydown', function(event) {
+		if (event.key === 'Enter' || event.keyCode === 13) {
+			event.preventDefault(); // Prevent form submission if inside a form
+			fillCode(id); // Call the function that handles the click
+		}
+	});
 	
     targetForm.appendChild(button);
 }
@@ -227,18 +228,18 @@ function renderFormField(field) {
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
-        if (field.default) {
+        if (field.default && !field.parentTmpl) {
             inputElement.value = field.default;
         }
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
-        if (field.default) {
+        if (field.default && !field.parentTmpl) {
             inputElement.innerText = field.default;
         }
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
         inputElement.type = 'number';
-        if (field.default) {
+        if (field.default && !field.parentTmpl) {
             inputElement.value = field.default;
         }
     } else if (field.type === 'select') {
@@ -299,11 +300,11 @@ function generateFormHTML(form) {
 
         let isSwitchCase = field?.parentTmpl || false; 
         let hidden = isSwitchCase ? 'hidden' : '';
-        let targetVal = field.targetVal ? `data-target-val="${field.targetVal}` : '';
-        let parentTmpl = field.parentTmpl ? `data-parent-tmpl="${field.parentTmpl}"` : '';
+        let targetVal = field.targetVal || '';
+        let parentTmpl = field.parentTmpl || '';
 
         html += `
-            <tr ${parentTmpl} ${hidden} ${targetVal}>
+            <tr data-parent-tmpl="${parentTmpl}" ${hidden} data-target-val="${targetVal}">
                 <td>
                     <label>${field.name}</label>
                     <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`).replaceAll("<br>", `\n\n`)}</div>
@@ -387,16 +388,10 @@ function fillCode(id) {
         if (element) {
             inputValue = element.value;
             if (!inputValue && !field.valIfEmpty) {
-                continue;
+                continue; // Skip if input is empty and no valIfEmpty is defined
             }
         }
 
-        if (inputValue) {
-	        const before = field?.wrapperBefore || '';
-	        const after = field?.wrapperAfter || '';
-            inputValue = before + inputValue + after;
-        }
-		
         if (field.valIfEmpty === "none") {
             inputValue = "";
         } else if (field.valIfEmpty) {
@@ -408,6 +403,11 @@ function fillCode(id) {
             inputValue = transform === 'lowercase' ? inputValue.toLowerCase() : transform === 'uppercase' ? inputValue.toUpperCase() : inputValue;
         }
 
+        if (inputValue) {
+			const before = field?.wrapperBefore || '';
+	        const after = field?.wrapperAfter || '';
+            inputValue = before + inputValue + after;
+        }
 
         code = code.replaceAll(placeholder, inputValue);
     }
