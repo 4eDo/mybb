@@ -302,11 +302,11 @@ function generateFormHTML(form) {
 
         let isSwitchCase = field?.parentTmpl || false; 
         let hidden = isSwitchCase ? 'hidden' : '';
-        let targetVal = field.targetVal ? `data-target-val="${field.targetVal}` : '';
-        let parentTmpl = field.parentTmpl ? `data-parent-tmpl="${field.parentTmpl}"` : '';
+        let targetVal = field.targetVal || '';
+        let parentTmpl = field.parentTmpl || '';
 
         html += `
-            <tr ${parentTmpl} ${hidden} ${targetVal}>
+            <tr data-target-val="${parentTmpl}" ${hidden} data-parent-tmpl="${targetVal}">
                 <td>
                     <label>${field.name}</label>
                     <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`).replaceAll("<br>", `\n\n`)}</div>
