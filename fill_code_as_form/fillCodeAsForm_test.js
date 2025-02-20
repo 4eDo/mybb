@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.44");
+console.group("4eDo script fill_code_as_form v2.0.45");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -228,14 +228,20 @@ function renderFormField(field) {
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
-		inputElement.value = field.default;
+		if(field.default) {
+			inputElement.value=field.default;
+		}
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
-		inputElement.innerText = field.default;
+		if(field.default) {
+			inputElement.innerText=field.default;
+		}
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
         inputElement.type = 'number';
-		inputElement.value = field.default;
+		if(field.default) {
+			inputElement.value=field.default;
+		}
     } else if (field.type === 'select') {
         inputElement = document.createElement('select');
 
@@ -294,11 +300,11 @@ function generateFormHTML(form) {
 
         let isSwitchCase = field?.parentTmpl || false; 
         let hidden = isSwitchCase ? 'hidden' : '';
-        let targetVal = field.targetVal || '';
-        let parentTmpl = field.parentTmpl || '';
+        let targetVal = field.targetVal ? `data-target-val="${field.targetVal}` || '';
+        let parentTmpl = field.parentTmpl ? `data-parent-tmpl="${field.parentTmpl}"` || '';
 
         html += `
-            <tr data-parent-tmpl="${parentTmpl}" ${hidden} data-target-val="${targetVal}">
+            <tr ${parentTmpl} ${hidden} ${targetVal}>
                 <td>
                     <label>${field.name}</label>
                     <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`).replaceAll("<br>", `\n\n`)}</div>
