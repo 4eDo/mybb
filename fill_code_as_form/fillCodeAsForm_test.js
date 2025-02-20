@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.47");
+console.group("4eDo script fill_code_as_form v2.0.48");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -184,7 +184,6 @@ function drawForm(id) {
         return;
     }
 
-    // console.log("Target Template:", targetTmpl);
     showTargetForm();
 
     let targetForm = document.getElementById('targetForm');
@@ -208,16 +207,16 @@ function drawForm(id) {
     let button = document.createElement('div');
     button.id = 'tmpl_get-code-button';
     button.innerText = 'Получить код';
-	button.setAttribute('tabindex', '0');
-	button.setAttribute('role', 'button');
+    button.setAttribute('tabindex', '0');
+    button.setAttribute('role', 'button');
     button.setAttribute('onclick', `fillCode(${id})`);
 
-	button.addEventListener('keydown', function(event) {
-		if (event.key === 'Enter' || event.keyCode === 13) {
-			event.preventDefault(); // Prevent form submission if inside a form
-			fillCode(id); // Call the function that handles the click
-		}
-	});
+    button.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.keyCode === 13) {
+            event.preventDefault();
+            fillCode(id);
+        }
+    });
 	
     targetForm.appendChild(button);
 }
