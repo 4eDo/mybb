@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.30");
+console.group("4eDo script fill_code_as_form v2.0.31");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -255,49 +255,34 @@ function generateFormHTML(form) {
 function handleSwitchFields(selectElement, parentTmpl) {
     const selectedValue = selectElement.value;
 
-    const allRows = document.querySelectorAll('tr[data-parent-tmpl]');
-    
-    allRows.forEach(row => {
-        const parentTemplate = row.dataset.parentTmpl;
-        if (parentTemplate === parentTmpl) {
-            row.hidden = true; 
-            resetInputs(row);
-        }
+    hideAllChildren(parentTmpl);
+
+    const childRowsToShow = document.querySelectorAll(`tr[data-parent-tmpl="${parentTmpl}"][data-target-val="${selectedValue}"]`);
+    childRowsToShow.forEach(row => {
+        row.hidden = false;
     });
+}
 
-    const childRows = findChildRows(allRows, parentTmpl);
-
+function hideAllChildren(parentTmpl) {
+    const childRows = document.querySelectorAll(`tr[data-parent-tmpl="${parentTmpl}"]`);
     childRows.forEach(row => {
-        const targetVal = row.dataset.targetVal;
-        if (targetVal === selectedValue) {
-            row.hidden = false;
-        }
-    });
-}
-function findChildRows(allRows, parentTmpl) {
-    let result = [];
-    allRows.forEach(row => {
-        const parentTemplate = row.dataset.parentTmpl;
-        if (parentTemplate === parentTmpl) {
-            result.push(row);
-            result = result.concat(findChildRows(allRows, row.dataset.targetVal));
-        }
-    });
-    return result;
-}
+        row.hidden = true;
+        const inputs = row.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            resetInput(input);
+        });
 
-function resetInputs(row) {
-    const inputs = row.querySelectorAll('input, textarea, select');
-    inputs.forEach(input => {
-        if (input.type === 'select-one') {
-            input.selectedIndex = 0;
-        } else {
-            input.value = '';
-        }
+        hideAllChildren(row.querySelector('select')?.id.replace('field_', ''));
     });
 }
 
-
+function resetInput(input) {
+    if (input.type === 'select-one') {
+        input.selectedIndex = 0;
+    } else {
+        input.value = '';
+    }
+}
 
 function fillCode(id) {
     let selectedTemplate = userTemplateList.find(template => template.id == id);
