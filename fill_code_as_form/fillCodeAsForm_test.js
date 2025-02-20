@@ -216,11 +216,12 @@ function renderFormField(field) {
         inputElement.setAttribute('data-valIfEmpty', field.valIfEmpty);
     }
 
-    inputElement.id = `field_${field.tmpl}`;
-    inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
     if (field.default) {
         inputElement.setAttribute('data-default', field.default);
     }
+	
+    inputElement.id = `field_${field.tmpl}`;
+    inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
 
     return {
         element: inputElement,
@@ -305,44 +306,33 @@ function resetInput(input) {
 }
 
 function fillCode(id) {
-    let selectedTemplate = userTemplateList.find(template => template.id == id);
-    if (!selectedTemplate) { console.error('Шаблон не найден.'); return; }
+    const selectedTemplate = userTemplateList.find(template => template.id === id);
+    if (!selectedTemplate) {
+        console.error('Шаблон не найден.');
+        return;
+    }
+
     let code = selectedTemplate.code;
 
     selectedTemplate.form.forEach(field => {
-        let placeholder = `{{${field.tmpl}}}`;
-        let element = document.getElementById(`field_${field.tmpl}`);
-        let inputValue = element ? element.value : null;
+        const placeholder = `{{${field.tmpl}}}`;
+        const element = document.getElementById(`field_${field.tmpl}`);
+        let inputValue = element ? element.value : field?.valIfEmpty === "none" ? "" : field?.valIfEmpty || '';
 
-        if (!element) {
-            let valIfEmpty = field?.valIfEmpty;
-            if (valIfEmpty) {
-                inputValue = valIfEmpty == "none" ? "" : valIfEmpty;
-                code = code.replaceAll(placeholder, inputValue);
-            }
-        } else if (inputValue) {
-            if (element.getAttribute("data-textTransform")) {
-                switch (element.getAttribute("data-textTransform")) {
-                    case "lowercase": inputValue = inputValue.toLowerCase(); break;
-                    case "uppercase": inputValue = inputValue.toUpperCase(); break;
-                }
-            }
-            let before = field?.wrapperBefore || '';
-            let after = field?.wrapperAfter || '';
-            inputValue = before + inputValue + after;
-
-            if(inputValue == "none") {
-				code = code.replaceAll(placeholder, "");
-			} else {
-				code = code.replaceAll(placeholder, inputValue);
-			}
-        } else {
-            let valIfEmpty = element ? element.getAttribute("data-valIfEmpty") : null;
-            if (valIfEmpty) {
-                inputValue = valIfEmpty == "none" ? "" : valIfEmpty;
-                code = code.replaceAll(placeholder, inputValue);
-            }
+        if (!element && field?.valIfEmpty === undefined) {
+            continue; // Skip this field if element doesn't exist and no valIfEmpty
         }
+
+        if (element && element.getAttribute("data-textTransform")) {
+            const transform = element.getAttribute("data-textTransform");
+            inputValue = transform === 'lowercase' ? inputValue.toLowerCase() : transform === 'uppercase' ? inputValue.toUpperCase() : inputValue;
+        }
+
+        const before = field?.wrapperBefore || '';
+        const after = field?.wrapperAfter || '';
+        inputValue = before + inputValue + after;
+
+        code = code.replaceAll(placeholder, inputValue);
     });
 
     code = code.replaceAll("{{CURRENT_USER_ID}}", UserID);
