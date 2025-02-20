@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.31");
+console.group("4eDo script fill_code_as_form v2.0.32");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -144,16 +144,14 @@ function drawForm(id) {
 
     targetForm.appendChild(table);
 
-    // Todo: fixme!
     table.querySelectorAll('select').forEach(selectElement => {
         const fieldTmpl = selectElement.id.replace('field_', '');
         selectElement.addEventListener('change', () => {
-            handleSwitchFields(selectElement, fieldTmpl, targetTmpl.form);
+            handleSwitchFields(selectElement, fieldTmpl);
         });
-        handleSwitchFields(selectElement, fieldTmpl, targetTmpl.form);
+        handleSwitchFields(selectElement, fieldTmpl);
     });
 
-    // Add the "Get Code" button
     let button = document.createElement('div');
     button.id = 'tmpl_get-code-button';
     button.innerText = 'Получить код';
@@ -164,21 +162,25 @@ function drawForm(id) {
 function renderFormField(field) {
     let inputElement;
 
+    if (field.default) {
+        inputElement.setAttribute('data-default', field.default);
+    }
+
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
-        if (field.default) {
+        if (field.default && !field.parentTmpl) {
             inputElement.value = field.default;
         }
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
-        if (field.default) {
+        if (field.default && !field.parentTmpl) {
             inputElement.innerText = field.default;
         }
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
         inputElement.type = 'number';
-        if (field.default) {
+        if (field.default && !field.parentTmpl) {
             inputElement.value = field.default;
         }
     } else if (field.type === 'select') {
@@ -251,7 +253,6 @@ function generateFormHTML(form) {
     return html;
 }
 
-// FIXME
 function handleSwitchFields(selectElement, parentTmpl) {
     const selectedValue = selectElement.value;
 
@@ -260,7 +261,27 @@ function handleSwitchFields(selectElement, parentTmpl) {
     const childRowsToShow = document.querySelectorAll(`tr[data-parent-tmpl="${parentTmpl}"][data-target-val="${selectedValue}"]`);
     childRowsToShow.forEach(row => {
         row.hidden = false;
+        const inputs = row.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            setDefaultValue(input);
+        });
     });
+}
+
+function setDefaultValue(input) {
+    const defaultValue = input.dataset.default;
+    if (defaultValue) {
+        if (input.type === 'select-one') {
+            for (let i = 0; i < input.options.length; i++) {
+                if (input.options[i].value === defaultValue) {
+                    input.selectedIndex = i;
+                    break;
+                }
+            }
+        } else {
+            input.value = defaultValue;
+        }
+    }
 }
 
 function hideAllChildren(parentTmpl) {
