@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.52");
+console.group("4eDo script fill_code_as_form v2.0.53");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -184,16 +184,13 @@ function drawForm(id) {
         return;
     }
 
-    // console.log("Target Template:", targetTmpl);
     showTargetForm();
 
     let targetForm = document.getElementById('targetForm');
     targetForm.innerHTML = `<div id="templateFormName">${targetTmpl.name}</div>`;
     let table = document.createElement('table');
 
-    let formHTML = generateFormHTML(targetTmpl.form);
-
-    table.innerHTML = formHTML;
+    generateFormHTML(targetTmpl.form, table);
 
     targetForm.appendChild(table);
 
@@ -208,16 +205,16 @@ function drawForm(id) {
     let button = document.createElement('div');
     button.id = 'tmpl_get-code-button';
     button.innerText = 'Получить код';
-	button.setAttribute('tabindex', '0');
-	button.setAttribute('role', 'button');
+    button.setAttribute('tabindex', '0');
+    button.setAttribute('role', 'button');
     button.setAttribute('onclick', `fillCode(${id})`);
 
-	button.addEventListener('keydown', function(event) {
-		if (event.key === 'Enter' || event.keyCode === 13) {
-			event.preventDefault(); // Prevent form submission if inside a form
-			fillCode(id); // Call the function that handles the click
-		}
-	});
+    button.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.keyCode === 13) {
+            event.preventDefault();
+            fillCode(id);
+        }
+    });
 	
     targetForm.appendChild(button);
 }
@@ -294,28 +291,37 @@ function renderFormField(field) {
     };
 }
 
-function generateFormHTML(form) {
-    let html = '';
-
+function generateFormHTML(form, table) {
     form.forEach(field => {
         let { element: inputElement, field: currentField } = renderFormField(field);
 
-        let isSwitchCase = field?.parentTmpl || false; 
+        let isSwitchCase = field?.parentTmpl || false;
         let hidden = isSwitchCase ? 'hidden' : '';
         let targetVal = field.targetVal || '';
         let parentTmpl = field.parentTmpl || '';
 
-        html += `
-            <tr data-target-val="${parentTmpl}" ${hidden} data-parent-tmpl="${targetVal}">
-                <td>
-                    <label>${field.name}</label>
-                    <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`).replaceAll("<br>", `\n\n`)}</div>
-                </td>
-                <td>${inputElement ? inputElement.outerHTML : ''}</td>
-            </tr>
+        let tr = document.createElement('tr');
+        tr.setAttribute('data-parent-tmpl', parentTmpl);
+        tr.setAttribute('data-target-val', targetVal);
+        if (isSwitchCase) {
+            tr.hidden = true;
+        }
+
+        let tdLabel = document.createElement('td');
+        tdLabel.innerHTML = `
+            <label>${field.name}</label>
+            <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`).replaceAll("<br>", `\n\n`)}</div>
         `;
+
+        let tdInput = document.createElement('td');
+        if (inputElement) {
+            tdInput.appendChild(inputElement);
+        }
+
+        tr.appendChild(tdLabel);
+        tr.appendChild(tdInput);
+        table.appendChild(tr);
     });
-    return html;
 }
 
 function handleSwitchFields(selectElement, parentTmpl) {
