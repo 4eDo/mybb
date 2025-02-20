@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.41");
+console.group("4eDo script fill_code_as_form v2.0.50");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -228,18 +228,18 @@ function renderFormField(field) {
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
-        if (field.default && !field.parentTmpl) {
+        if (field.default) {
             inputElement.value = field.default;
         }
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
-        if (field.default && !field.parentTmpl) {
+        if (field.default) {
             inputElement.innerText = field.default;
         }
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
         inputElement.type = 'number';
-        if (field.default && !field.parentTmpl) {
+        if (field.default) {
             inputElement.value = field.default;
         }
     } else if (field.type === 'select') {
@@ -332,6 +332,7 @@ function handleSwitchFields(selectElement, parentTmpl) {
 }
 
 function setDefaultValue(input) {
+	console.log("Set default to input " + input.id);
     const defaultValue = input.dataset.default;
     if (defaultValue) {
         if (input.type === 'select-one') {
@@ -361,6 +362,7 @@ function hideAllChildren(parentTmpl) {
 }
 
 function resetInput(input) {
+	console.log("Reset input " + input.id);
     if (input.type === 'select-one') {
         input.selectedIndex = 0;
     } else {
@@ -391,8 +393,13 @@ function fillCode(id) {
                 continue; // Skip if input is empty and no valIfEmpty is defined
             }
         }
+        if (inputValue) {
+			const before = field?.wrapperBefore || '';
+	        const after = field?.wrapperAfter || '';
+            inputValue = before + inputValue + after;
+        }
 
-        if (field.valIfEmpty === "none") {
+        if (field.valIfEmpty == "none") {
             inputValue = "";
         } else if (field.valIfEmpty) {
             inputValue = field.valIfEmpty;
@@ -401,12 +408,6 @@ function fillCode(id) {
         if (element && element.getAttribute("data-textTransform")) {
             const transform = element.getAttribute("data-textTransform");
             inputValue = transform === 'lowercase' ? inputValue.toLowerCase() : transform === 'uppercase' ? inputValue.toUpperCase() : inputValue;
-        }
-
-        if (inputValue) {
-			const before = field?.wrapperBefore || '';
-	        const after = field?.wrapperAfter || '';
-            inputValue = before + inputValue + after;
         }
 
         code = code.replaceAll(placeholder, inputValue);
