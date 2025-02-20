@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.46");
+console.group("4eDo script fill_code_as_form v2.0.47");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -228,20 +228,20 @@ function renderFormField(field) {
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
-		if(field.default) {
-			inputElement.value=field.default;
-		}
+        if (field.default) {
+            inputElement.value = field.default;
+        }
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
-		if(field.default) {
-			inputElement.innerText=field.default;
-		}
+        if (field.default) {
+            inputElement.innerText = field.default;
+        }
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
         inputElement.type = 'number';
-		if(field.default) {
-			inputElement.value=field.default;
-		}
+        if (field.default) {
+            inputElement.value = field.default;
+        }
     } else if (field.type === 'select') {
         inputElement = document.createElement('select');
 
