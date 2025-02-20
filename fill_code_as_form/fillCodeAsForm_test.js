@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.36");
+console.group("4eDo script fill_code_as_form v2.0.37");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -119,7 +119,8 @@ function populateTemplateList() {
         templateDiv.className = 'tmpl_template';
         templateDiv.setAttribute('onclick', `drawForm(${template.id})`);
         templateDiv.innerText = template.name;
-        templateDiv.tabindex = 0;
+        templateDiv.setAttribute('tabindex', '0');
+        templateDiv.setAttribute('role', 'button');
         templatesList.appendChild(templateDiv);
     }
 }
@@ -156,7 +157,8 @@ function drawForm(id) {
     let button = document.createElement('div');
     button.id = 'tmpl_get-code-button';
     button.innerText = 'Получить код';
-    button.tabindex = 0;
+	button.setAttribute('tabindex', '0');
+	button.setAttribute('role', 'button');
     button.setAttribute('onclick', `fillCode(${id})`);
     targetForm.appendChild(button);
 }
