@@ -382,51 +382,44 @@ function resetInput(input) {
 /* ЗАПОЛНЕНИЕ КОДА ПО ФОРМЕ */
 /* ----------------------------------------------------------- */
 function fillCode(id) {
-    const selectedTemplate = userTemplateList.find(template => template.id === id);
-    if (!selectedTemplate) {
-        console.error('Шаблон не найден.');
-        return;
-    }
-
-    let code = selectedTemplate.code;
-
-    for (const field of selectedTemplate.form) {
-        const placeholder = `{{${field.tmpl}}}`;
-        const element = document.getElementById(`field_${field.tmpl}`);
-        let inputValue = '';
-
-        if (element) {
-            inputValue = element.value;
-            if (!inputValue && !field.valIfEmpty) {
-                continue; // Skip if input is empty and no valIfEmpty is defined
-            }
-        }
-        if (inputValue) {
+	let selectedTemplate = userTemplateList.find(template => template.id == id);
+	if (!selectedTemplate) { console.error('Шаблон не найден.'); return; }
+	let code = selectedTemplate.code;
+	
+	selectedTemplate.form.forEach(field => {
+		let placeholder = `{{${field.tmpl}}}`;
+		let inputValue = document.getElementById(`field_${field.tmpl}`).value;
+		if(inputValue) {
+			if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-textTransform")) {
+				switch(document.getElementById(`field_${field.tmpl}`).getAttribute("data-textTransform")) {
+					case "lowercase": inputValue = inputValue.toLowerCase(); break;
+					case "uppercase": inputValue = inputValue.toUpperCase(); break;
+				}
+			}
+            
 			const before = field?.wrapperBefore || '';
 	        const after = field?.wrapperAfter || '';
             inputValue = before + inputValue + after;
-        }
+            
+			if(inputValue == "none") {
+				code = code.replaceAll(placeholder, "");
+			} else {
+				code = code.replaceAll(placeholder, inputValue);
+			}	
+		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")) {
+			let valIfEmpty = document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty");
+			if(valIfEmpty.length > 0) {
+				code = code.replaceAll(placeholder, valIfEmpty == "none" ? "" : valIfEmpty);
+			}
+		}
+	});
 
-        if (field.valIfEmpty == "none") {
-            inputValue = "";
-        } else if (field.valIfEmpty) {
-            inputValue = field.valIfEmpty;
-        }
-
-        if (element && element.getAttribute("data-textTransform")) {
-            const transform = element.getAttribute("data-textTransform");
-            inputValue = transform === 'lowercase' ? inputValue.toLowerCase() : transform === 'uppercase' ? inputValue.toUpperCase() : inputValue;
-        }
-
-        code = code.replaceAll(placeholder, inputValue);
-    }
-
-    code = code.replaceAll("{{CURRENT_USER_ID}}", UserID);
-    code = code.replaceAll("{{CURRENT_TOPIC_SRC}}", window.location);
-
-    console.log("Сгенерированный код:", code);
-    insert(code);
-    hideTemplateWindow();
+	code = code.replaceAll("{{CURRENT_USER_ID}}", UserID);
+	code = code.replaceAll("{{CURRENT_TOPIC_SRC}}", window.location);
+	
+	console.log("Сгенерированный код:", code);
+	insert(code);
+	hideTemplateWindow();
 }
 
 fetchAndParseTemplates();
