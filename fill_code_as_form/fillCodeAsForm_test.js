@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.33");
+console.group("4eDo script fill_code_as_form v2.0.34");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -314,7 +314,7 @@ function fillCode(id) {
 
     let code = selectedTemplate.code;
 
-    selectedTemplate.form.forEach(field => {
+    for (const field of selectedTemplate.form) {
         const placeholder = `{{${field.tmpl}}}`;
         const element = document.getElementById(`field_${field.tmpl}`);
         let inputValue = element ? element.value : field?.valIfEmpty === "none" ? "" : field?.valIfEmpty || '';
@@ -333,7 +333,7 @@ function fillCode(id) {
         inputValue = before + inputValue + after;
 
         code = code.replaceAll(placeholder, inputValue);
-    });
+    }
 
     code = code.replaceAll("{{CURRENT_USER_ID}}", UserID);
     code = code.replaceAll("{{CURRENT_TOPIC_SRC}}", window.location);
