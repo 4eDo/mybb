@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.32");
+console.group("4eDo script fill_code_as_form v2.0.33");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -162,10 +162,6 @@ function drawForm(id) {
 function renderFormField(field) {
     let inputElement;
 
-    if (field.default) {
-        inputElement.setAttribute('data-default', field.default);
-    }
-
     if (field.type === 'text') {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
@@ -222,6 +218,9 @@ function renderFormField(field) {
 
     inputElement.id = `field_${field.tmpl}`;
     inputElement.setAttribute('style', typeof COLOR_INPUT_TEXT_fcaf !== 'undefined' ? COLOR_INPUT_TEXT_fcaf : "color: #000000 !important");
+    if (field.default) {
+        inputElement.setAttribute('data-default', field.default);
+    }
 
     return {
         element: inputElement,
