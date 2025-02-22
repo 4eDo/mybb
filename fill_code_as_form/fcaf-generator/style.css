@@ -1,0 +1,247 @@
+/* === Варианты акцентного цвета === */
+:root {
+    --accent-color: #28a745; /* Зеленый */
+    --accent-color-hover: #3fc65e; /* Зеленый */
+    --accent-color: #fd7e14; /* Оранжевый */
+    --accent-color: #007bff;/*  Синий */
+}
+
+/* Основные стили */
+body {
+    font-family: sans-serif;
+    background-color: #f0f0f0;
+    color: #000;
+    margin: 0;
+    padding: 20px;
+}
+
+.sidebar {
+    height: 100%; /* Полная высота экрана */
+    width: 200px; /* Ширина боковой панели */
+    position: fixed; /* Фиксированное положение */
+    z-index: 1; /* Поверх остального контента */
+    top: 0;
+    left: 0;
+    background-color: #111; /* Темный фон */
+    overflow-x: hidden; /* Скрываем горизонтальную полосу прокрутки */
+    padding-top: 20px; /* Отступ сверху */
+}
+
+.sidebar ul {
+    margin-left: -30px;
+}
+
+.sidebar li {
+    list-style: none;
+    color: #818181; /* Серый цвет текста */
+}
+
+.sidebar a {
+    text-decoration: none; /* Убираем подчеркивание */
+    font-size: 14px; /* Размер шрифта */
+    padding: 6px; /* Отступы ссылок */
+    color: #818181; /* Серый цвет текста */
+    display: block;
+	transition: 0.3s;
+}
+
+.sidebar li:hover > a {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.sidebar li:hover ul li:hover a {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.sidebar li:hover ul li a {
+    background-color: transparent; /* Убираем фон для дочерних элементов при наведении на родительский */
+    color: #818181; /* Цвет текста дочерних элементов */
+}
+
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    margin-left: 200px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    color: #222;
+    margin-bottom: 15px;
+}
+
+/* Формы и элементы управления */
+.form-group {
+    margin-bottom: 15px;
+    padding: 10px; /* Добавляем внутренний отступ для визуального разделения */
+    border: 1px solid #ddd; /* Добавляем обводку */
+    background-color: #f9f9f9; /* Делаем фон немного светлее */
+    border-radius: 4px;
+    color: #000; /* Явно устанавливаем черный цвет текста */
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #000; /* Черный цвет для label */
+}
+
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Очень важно, чтобы padding не увеличивал ширину */
+    font-size: 14px;
+    color: #000; /* Черный текст */
+    background-color: #fff; /* Белый фон для полей ввода */
+}
+
+textarea {
+    resize: vertical; /* Разрешить изменение высоты */
+}
+
+select {
+    appearance: none; /* Убрать стандартные стили select */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 10'%3E%3Cpath d='M0 0L5 5L0 10z' fill='%23777'/%3E%3C/svg%3E"); /* Добавляем стрелочку */
+    background-repeat: no-repeat;
+    background-position: right 8px top 50%;
+    background-size: 8px;
+    padding-right: 25px;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+/* Кнопки (без классов) */
+button, .btn {
+    display: inline-block;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease; /* Более плавные переходы */
+    background-color: #eee; /* Серый фон для обычных кнопок */
+    color: #333; /* Темно-серый текст для обычных кнопок */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15); /* Добавляем тень */
+}
+
+button:hover, .btn:hover {
+    background-color: #ddd; /* Более светлый серый при наведении */
+}
+
+button:active, .btn:active { /* Добавляем эффект нажатия */
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-color-hover);
+}
+
+.btn-primary:active { /* Добавляем эффект нажатия для основной кнопки */
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Таблица tmpl-exist */
+#tmpl-exist,
+#tmpl-default {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#tmpl-exist th,
+#tmpl-exist td,
+#tmpl-default th,
+#tmpl-default td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    color: #000; /* Черный текст в таблице */
+}
+
+#tmpl-exist th,
+#tmpl-default th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+/* Вспомогательные стили */
+.hidden {
+    display: none;
+}
+
+.help-text {
+    font-size: 12px;
+    color: #000; /* Черный цвет для help-text */
+    margin-top: 3px;
+}
+
+/* Список field-list */
+#field-list li {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+	list-style: decimal-leading-zero;
+	margin-left: -30px;
+}
+
+/* === Дополнительные стили (необязательно) === */
+
+/* Подсветка кода */
+code {
+    background-color: #eee;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #000; /* Черный текст в code */
+	cursor: pointer;
+	border: 1px solid black;
+	display: inline-block;
+}
+code {
+    position: relative; /* Необходимо для позиционирования псевдоэлемента */
+}
+
+code::after {
+    content: ""; /* Изначально псевдоэлемент пуст */
+    position: absolute;
+    top: -25px; /* Позиционируем над элементом code */
+    left: 50%;
+    transform: translateX(-50%); /* Центрируем */
+    background-color: rgba(0, 0, 0, 0.8); /* Темный фон */
+    color: #fff; /* Белый текст */
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0; /* Изначально скрыт */
+    transition: opacity 0.3s ease-in-out, top 0.3s ease-in-out; /* Плавное появление */
+    pointer-events: none; /* Чтобы не мешал кликам */
+    z-index: 1; /* Чтобы был поверх других элементов */
+}
+
+code.copied::after {
+    content: "Скопировано!"; /* Текст подсказки */
+    opacity: 1; /* Показываем подсказку */
+    top: -35px; /* Поднимаем немного выше */
+}

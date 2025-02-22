@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <title>Генератор шаблонов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div class="sidebar">
+		<ul>
+			<li><a href="#nav-load">Загрузить шаблон из файла</a></li>
+			<li><a href="#template-info">Информация о шаблоне</a></li>
+			<li class="noColor"><a href="#form-fields">Поля для заполнения</a>
+				<ul id="nav-fields">
+				</ul>
+			</li>
+			<li><a href="#template-code-sect">Код-шаблон для заполнения</a></li>
+			<li><a href="#json-output">Сохранение результата</a></li>
+		</ul>
+	</div>
+
+    <div class="container">
+        <h1>Генератор форм для скрипта от 4eDo</h1>
+		<div id="nav-load" class="form-group">
+			<label>Загрузить шаблон из файла</label>
+			<div class="help-text">Сохраните ваш шаблон, включая комментарии "< !-- ШАБЛОН ИМЯ_ШАБЛОНА -- > (ваш шаблон) < !-- конец ШАБЛОН ИМЯ_ШАБЛОНА -- >" в файл с расширением .txt и загрузите его в эту форму.</div>
+			<input type="file" id="load-template-file" accept=".txt" class="btn btn-primary">
+		</div>
+		
+        <section id="template-info">
+            <h2>Информация о шаблоне</h2>
+            <div class="form-group">
+                <label for="template-name">Название</label>
+                <div class="help-text">Будет отображаться в списке шаблонов.</div>
+                <input type="text" id="template-name">
+            </div>
+            <div class="form-group">
+                <label for="template-fid">В каких форумах используется:</label>
+                <div class="help-text">Если указать <code>all</code>, данный шаблон будет доступен во всех форумах.
+                  <br> Чтобы указать конкретные форумы, введите их идентификаторы ЧЕРЕЗ ПРОБЕЛ.</div>
+                <input type="text" id="forum-ids">
+            </div>
+            <div class="form-group">
+                <label for="template-tid">В каких темах (топиках) используется:</label>
+              <div class="help-text">Если указать <code>all</code>, данный шаблон будет доступен во всех темах.
+                  <br> Чтобы указать конкретные темы, введите их идентификаторы ЧЕРЕЗ ПРОБЕЛ.</div>
+                <input type="text" id="topic-ids">
+            </div>
+        </section>
+
+        <section id="form-fields">
+            <h2>Поля для заполнения</h2>
+            <ul id="field-list"></ul>
+          
+            <button id="add-field-button">Добавить поле</button>
+
+            <!-- Hidden form for adding fields -->
+<form id="field-form" style="display: none;">
+    <h3>Новое поле</h3>
+    <div class="form-group">
+        <label for="field-tmpl">Идентификатор поля:</label>
+        <div class="help-text">Краткое именование, которое будет использоваться при генерации формы и для подстановки в код.
+          <br>Задавать латиницей, КАПСОМ и без пробелов. В одной форме эти идентификаторы дублироваться не должны.
+          <br>Примеры: <code>NAME_RU</code>, <code>AGE</code>, <code>SKILL_1</code> </div>
+        <input type="text" id="field-tmpl" name="tmpl">
+    </div>
+  
+    <div class="form-group">
+        <label for="field-has-parent">Это поле зависит от другого?</label>
+        <div class="help-text">Если да, то поле будет появляться только тогда, когда родительское поле примет определённое значение.</div>
+        <input type="checkbox" id="field-has-parent" name="hasParent">
+    </div>
+    <div class="form-group">
+        <label for="field-parentTmpl">От какого поля зависит:</label>
+        <div class="help-text">Укажите идентификатор поля, от которого будет зависеть данное поле. Поле, от которого будет зависеть, может иметь только тип "select" (Выпадающий список).</div>
+        <input type="text" list="parentsList" id="field-parentTmpl" name="parentTmpl">
+    </div>
+    <div class="form-group">
+        <label for="field-parent-value">При каком значении выбранного поля появявляется:</label>
+        <div class="help-text">Укажите значение поля, при котором данное поле будет отображаться на странице. Когда выбранное поле примет это значение, в форму добавится это поле.</div>
+        <input type="text" id="field-parent-value" name="parentValue">
+    </div>
+  
+    <div class="form-group">
+        <label for="field-name">Название поля:</label>
+        <div class="help-text">Отображается в форме.</div>
+        <input type="text" id="field-name" name="name">
+    </div>
+    <div class="form-group">
+        <label for="field-info">Описание поля:</label>
+        <div class="help-text">Поясняющий текст. Отображается под названием поля.
+          <br> Если хотите использовать перенос строки, то пишите вместо него <code>&lt;br&gt;</code>
+          <br> Если хотите, чтобы в каком-то месте был пример html-ссылки, то укажите <code>{{LINK_TEMPLATE}}</code> .</div>
+        <textarea id="field-info" name="info" rows="5"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="field-default">Значение по умолчанию:</label>
+        <div class="help-text">Будет вставлено в форму при загрузке. Пользователь сможет заменить на своё.</div>
+        <input type="text" id="field-default" name = "default">
+    </div>
+    <div class="form-group">
+        <label for="field-text-transform">Регистр текста:</label>
+        <div class="help-text">Значение поля при вставке в код будет принудительно преобразовано в один из регистров.</div>
+        <select id="field-text-transform" name="textTransform">
+            <option value="">Без изменений</option>
+            <option value="lowercase">Строчные буквы</option>
+            <option value="uppercase">Заглавные буквы</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="field-val-if-empty">Если пользователь не заполнил поле:</label>
+        <div class="help-text">По умолчанию в данной ситуации будет вставлен некий плейсхолдер вроде <code>{{FIELD_NAME}}</code>. Это нужно для того, чтобы пользователь мог заметить в сгенерированном коде, что что-то пропустил, и исправить.
+          <br> Для полей, зависящих от значений других полей, доступно только значение <code>none</code>.
+          <br> Если в данном поле указать какое-то значение, оно будет подставлено в код вместо плейсхолдера. Например, прочерк.
+          <br> Укажите <code>none</code>, если хотите, чтобы вместо плейсхолдера оставалась пустота.
+      </div>
+        <input type="text" id="field-val-if-empty" name="valIfEmpty">
+    </div>
+    <div class="form-group">
+        <label for="field-wrapper-before">Обёртка (перед значением):</label>
+        <div class="help-text">Если значение не пустое, при вставке его в код ДО значения будет добавлен определённый текст (например, bb-код). Для того, чтобы данный элемент выводился с новой строки, добавьте код переноса строки. В html это <code>&lt;br&gt;</code>, в bb - это <code>\r\n</code></div>
+        <input type="text" id="field-wrapper-before" name="wrapperBefore">
+    </div>
+    <div class="form-group">
+        <label for="field-wrapper-after">Обёртка (после значения):</label>
+        <div class="help-text">Если значение не пустое, при вставке его в код ПОСЛЕ значения будет добавлен определённый текст (например, bb-код).</div>
+        <input type="text" id="field-wrapper-after" name = "wrapperAfter">
+    </div>
+    <div class="form-group">
+        <label for="field-type">Тип поля:</label>
+        <div class="help-text">Выберите тип поля</div>
+        <select id="field-type" name="type">
+            <option value="text">Текст</option>
+            <option value="number">Число</option>
+            <option value="select">Выпадающий список</option>
+            <option value="textarea">Многострочный текст</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="field-add-empty">Добавить пустую опцию:</label>
+        <div class="help-text">При выборе этого пункта на первом месте в списке опций будет "Без значения". Обязательно для полей, зависящих от какого-то другого.</div>
+        <input type="checkbox" id="field-add-empty" name="addEmpty">
+    </div>
+	<div class="form-group field-empty-option-container hidden">
+		<label for="field-empty-option-value">Наименование пустой опции:</label>
+		<div class="help-text">Этот текст будет показываться в списке опций на первом месте.</div>
+		<input type="text" id="field-empty-option-value" name="emptyOptionValue" value="Без значения">
+	</div>
+    <div class="form-group">
+        <label for="field-options-list">Список опций:</label>
+        <div class="help-text">Перечислите значения для выбора через запятую. Если заполнять это поле, то подставляемое в код значение будет тем же, что отображается в выпадающем списке. </div>
+        <input type="text" id="field-options-list" name="optionsList">
+    </div>
+
+    <div class="form-group">
+        <div class="help-text">Вариант, когда подставляемое значение не соответствует отображаемому. Полезно, если заполняется какой-то код оформления профиля и, например, надо указать html class, но пользователю при этом показывается русскоязычное пояснение. </div>
+      <ul id="val-name-list"></ul>
+      <button type="button" id="add-val-name-pair-button">Добавить пару "значение - название"</button>
+    </div>
+
+</form>
+      </section>
+
+<section id="template-code-sect">
+            <h2>Код для заполнения</h2>
+                <div class="help-text">Укажите Ваш html или bb код. Размещайте идентификаторы полей для указания мест для подстановки вводимых пользователем значений. 
+                  <br> Если поле зависит от другого поля, не размещайте его с новой строки, а укажите в обёртке код переноса строки.</div>
+            <div class="form-group">
+                <label for="template-code">Значения для подстановки:</label>
+              <div class="help-text"><table id="tmpl-default">
+				<tr><th>Идентификатор</th><th>Название</th></tr>
+                <tr><td><code>{{CURRENT_USER_ID}}</code></td><td>Подставляет ID текущего пользователя. Можно использовать в ссылках на профиль - тогда пользователю не придётся указывать это вручную. Например, <code>/profile.php?id={{CURRENT_USER_ID}}</code></td></tr>
+                <tr><td><code>{{CURRENT_USER_LOGIN}}</code></td><td>Подставляет логин текущего пользователя. Можно использовать в ссылках на профиль - тогда пользователю не придётся указывать это вручную. Например, <code>/profile.php?id={{CURRENT_USER_ID}}</code></td></tr>
+                <tr><td><code>{{CURRENT_TOPIC_SRC}}</code></td><td>Подставляет ссылку на текущую тему. Например, если шаблон заполняется в теме с анкетой, вместо этой ссылки будет подставлена ссылка на тему с анкетой. В иных случаях бесполезно.</td></tr>
+              </table>
+                <table id="tmpl-exist">
+              </table>
+                  
+              </div>
+                
+            <textarea id="template-code" rows="15" cols="50" ></textarea>
+            </div>
+        </section>
+        <section id="json-output">
+            <h2>Код шаблона</h2>
+            <textarea id="template-text" rows="10" cols="50" readonly></textarea>
+        </section>
+
+        <div class="buttons">
+            <button id="generate-template-button">Сформировать шаблон</button>
+            <button id="save-template-button" class="btn-primary">Сохранить файл с шаблоном</button>
+			<br>
+            <button id="generate-json-button">Сформировать код полей</button>
+        </div>
+    </div>
+
+    <!-- Template for val/name pair -->
+<template id="val-name-pair-template">
+    <li>
+        <div class="form-group">
+            <label for="val">Значение:</label>
+            <input type="text" class="val" name="val">
+            <div class="help-text">Значение, которое будет использоваться в коде.</div>
+        </div>
+        <div class="form-group">
+            <label for="name">Название:</label>
+            <input type="text" class="name" name="name">
+            <div class="help-text">Название, которое будет отображаться в выпадающем списке.</div>
+        </div>
+        <button type="button" class="remove-val-name-button">Удалить пару</button>
+    </li>
+</template>
+      
+<datalist id="parentsList"></datalist>
+      
+	  <script src="script.js"></script>
+</body>
+</html>
