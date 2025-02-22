@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.0.53");
+console.group("4eDo script fill_code_as_form v2.0.54");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -415,6 +415,7 @@ function fillCode(id) {
 	});
 
 	code = code.replaceAll("{{CURRENT_USER_ID}}", UserID);
+	code = code.replaceAll("{{CURRENT_USER_LOGIN}}", UserLogin);
 	code = code.replaceAll("{{CURRENT_TOPIC_SRC}}", window.location);
 	
 	console.log("Сгенерированный код:", code);
