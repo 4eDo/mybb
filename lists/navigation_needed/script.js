@@ -6,7 +6,7 @@ const TARGET_FORUMS = {
 
 console.group("Для Маяка от 4eDo");
 console.log("%c~~ Скрипт для автоматического ведения каталога заявок. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
-console.log("v0.19");
+console.log("v0.20");
 console.groupEnd();
 /**
  * Выгрузка данных по темам
@@ -96,10 +96,23 @@ async function fetchData(url) {
   }
 }
 
-async function getTopics(forumIds) {
-  const url = `/api.php?method=topic.get&forum_id=${forumIds.join(',')}&fields=id,subject,first_post&limit=${TOPICS_PER_REQUEST}`;
+async function getForumTopicCount(forumId) {
+  const url = `/api.php?method=board.getForums&id=${forumId}`;
   const data = await fetchData(url);
-  return data?.response || [];
+  return data?.response?.[0]?.num_topics ? parseInt(data.response[0].num_topics, 10) : 0;
+}
+
+async function getTopics(forumId, totalTopics) {
+    let allTopics = [];
+    let skip = 0;
+    while (skip < totalTopics) {
+        const url = `/api.php?method=topic.get&forum_id=${forumId}&fields=id,subject,first_post&limit=${TOPICS_PER_REQUEST}&skip=${skip}`;
+        const data = await fetchData(url);
+        if (!data?.response) break;
+        allTopics.push(...data.response);
+        skip += TOPICS_PER_REQUEST;
+    }
+    return allTopics;
 }
 
 async function getPosts(topicIds) {
@@ -119,7 +132,12 @@ async function getPosts(topicIds) {
 }
 
 async function processForum(forumId, marker) {
-  const topics = await getTopics([forumId]);
+  // Получаем общее количество топиков в форуме
+  const totalTopics = await getForumTopicCount(forumId);
+  console.log(`Всего топиков в форуме ${forumId}: ${totalTopics}`);
+
+  // Получаем все топики с учетом общего количества
+  const topics = await getTopics(forumId, totalTopics);
   const topicIds = topics.map(topic => topic.id);
   const posts = await getPosts(topicIds);
 
@@ -416,9 +434,9 @@ async function init() {
   const urlParams = new URLSearchParams(window.location.search);
   const searchMode = urlParams.get('searchMode') ? urlParams.get('searchMode') : "all";
 
-  const promises = Object.entries(TARGET_FORUMS).map(([marker, forumId]) =>
-    processForum(forumId, marker)
-  );
+  const promises = Object.entries(TARGET_FORUMS).map(async ([marker, forumId]) => {
+    return await processForum(forumId, marker);
+  });
 
   const splitedResults = await Promise.all(promises);
   results = splitedResults.flat();
