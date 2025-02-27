@@ -1,6 +1,6 @@
 /** Модерирование тем: опция "Закрыть и перенести" от 4eDo */
 $(document).ready(function() {
-  if(GroupId < 3) {
+  if(GroupID < 3) {
     if (sessionStorage.getItem('returnPage')) {
       sessionStorage.removeItem('returnPage');
       window.location.href = $('#mod-options option:contains("Перенести тему")').val();
