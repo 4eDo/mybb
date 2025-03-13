@@ -308,9 +308,10 @@ function generateFormHTML(form, table) {
         }
 
         let tdLabel = document.createElement('td');
+	    /* .replaceAll("<br>", `\n\n`) */
         tdLabel.innerHTML = `
             <label>${field.name}</label>
-            <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`).replaceAll("<br>", `\n\n`)}</div>
+            <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)}</div>
         `;
 
         let tdInput = document.createElement('td');
