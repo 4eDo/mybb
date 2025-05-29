@@ -82,7 +82,7 @@
 					.replace(/^-+|-+$/g, '');
 				let linksHtml = `<span class="markdown-links">
 				<span onclick="md_copyHref(this)" class="markdown-url" class="" src="https://forumupload.ru/uploads/001c/02/df/2/277755.png" alt="Копировать ссылку" title="Копировать ссылку" data-href="${anchorId}">&nbsp;</span>
-				<span onclick="md_copyHref(this, true)" class="markdown-bb" src="https://forumupload.ru/uploads/001c/02/df/2/277755.png" alt="Копировать BB ссылку" title="Копировать BB ссылку" data-href="${anchorId}" data-content="${content}">&nbsp;</span>
+				<span onclick="md_copyHref(this, true)" class="markdown-bb" src="https://forumupload.ru/uploads/001c/02/df/2/277755.png" alt="Копировать BB ссылку" title="Копировать BB ссылку" data-href="${anchorId}" data-content="${escapeHtml(content)}">&nbsp;</span>
 			  </span>`;
 				let headerHtml;
 				switch (level) {
@@ -108,6 +108,14 @@
 				return `${prefix}${headerHtml}`;
 			}
 		);
+	}
+	function escapeHtml(unsafe) {
+		return unsafe
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#039;");
 	}
 
 	function processBIUS(text) {
