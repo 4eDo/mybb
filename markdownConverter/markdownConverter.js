@@ -21,7 +21,6 @@
 		markdownText = markdownText.replace(/<\/p>/g, '\n');
 		markdownText = markdownText.replace(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi,
 			(match, url, linkText) => url);
-		console.log(markdownText);
 
 		markdownText = markdownText.replace(/(^|\n)```([^\n]*)\n([\s\S]*?)```($|\n)/g, (match, p1, lang, code, p4) => {
 			const trimmedCode = code;
