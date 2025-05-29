@@ -1,4 +1,9 @@
 (function() {
+	console.group("4eDo script markdownConverter ");
+	console.log("%c~~ Скрипт для отображения markdown. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
+	console.log("More info: https://github.com/4eDo/mybb/tree/main/markdownConverter# ");
+	console.groupEnd();
+	// Добавление кнопки
 	$("#button-font").after(`<td id="button-markdown" title="Использовать разметку Markdown"><img src="/i/blank.gif"  onclick="bbcode('[markdown]','[/markdown]')"></td>`);
 
 	$('.custom_tag_markdown').each(function() {
