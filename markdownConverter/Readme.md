@@ -96,8 +96,8 @@ markdown
    - Многоуровневые (пробел перед маркером)
 3. Чекбоксы ( [ ] и [x])
 4. Заголовки (начинаются с # , уровни 3 и выше оформляются в одинаковый хтмл)
-5. Картинки (через ![такое оформление](https://github.com/4eDo/mybb/tree/main/markdownConverter#readme) )
-6. Ссылки (через [такое оформление](https://github.com/4eDo/mybb/tree/main/markdownConverter#readme) )
+5. Картинки (через `![такое оформление](https://github.com/4eDo/mybb/tree/main/markdownConverter#readme)` )
+6. Ссылки (через `[такое оформление](https://github.com/4eDo/mybb/tree/main/markdownConverter#readme)` )
 7. Цитаты (начинаются с > , вложенные - >> и т.д.)
 8. Код
    - Однострочный
