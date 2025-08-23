@@ -130,7 +130,8 @@ async function fetchAndParseTemplates() {
             // console.log("Template:", { name, forums, topics, form, code });
 
             if  (
-			    (forums.includes("all") && topics.includes("all")) // Все форумы + все темы
+				forums.includes(currentForum)
+			    || (forums.includes("all") && topics.includes("all")) // Все форумы + все темы
 			    || (forums.includes("all") && topics.includes(currentTopic)) // Все форумы + конкретная тема
 			    || (forums.includes(currentForum) && topics.includes("all")) // Конкретный форум + все темы
 			    || (forums.includes(currentForum) && topics.includes(currentTopic)) // Конкретный форум + конкретная тема
