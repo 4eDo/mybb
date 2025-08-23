@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.1.4");
+console.group("4eDo script fill_code_as_form v2.1.5");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -131,6 +131,7 @@ async function fetchAndParseTemplates() {
 
             if  (
 				forums.includes(currentForum)
+				|| topics.includes(currentTopic)
 			    || (forums.includes("all") && topics.includes("all")) // Все форумы + все темы
 			    || (forums.includes("all") && topics.includes(currentTopic)) // Все форумы + конкретная тема
 			    || (forums.includes(currentForum) && topics.includes("all")) // Конкретный форум + все темы
