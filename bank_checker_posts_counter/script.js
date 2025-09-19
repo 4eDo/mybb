@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter");
+console.group("4eDo script Bank checker & Posts counter; v 0.2");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
