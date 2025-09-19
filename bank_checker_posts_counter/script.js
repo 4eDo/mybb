@@ -107,6 +107,7 @@ async function initUserPostAnalysis_bcpc() {
   }
 }
 
+
 /**
  * Загрузка постов пользователя в игровых форумах
  */
@@ -155,28 +156,20 @@ async function loadUserGamePosts_bcpc() {
           .replace('{current}', processedTopics)
           .replace('{total}', totalTopics));
         
-        const userPostsResponse = await mybb_bcpc.call('post.get', {
+        const postsInTopic = await mybb_bcpc.call('post.get', {
           topic_id: topic.id,
-          user_id: userData_bcpc.id,
           fields: ['id', 'message', 'posted', 'topic_id', 'user_id'],
           sort_by: 'posted',
           sort_dir: 'asc',
           limit: CONFIG_bcpc.POSTS_PER_REQUEST
         });
         
-        if (userPostsResponse && userPostsResponse.length > 0) {
-          const firstPostResponse = await mybb_bcpc.call('post.get', {
-            topic_id: topic.id,
-            fields: ['id', 'posted'],
-            sort_by: 'posted',
-            sort_dir: 'asc',
-            limit: 1
-          });
+        if (postsInTopic && postsInTopic.length > 0) {
+          const firstPost = postsInTopic && postsInTopic.length > 0 ? postsInTopic[0] : null;
           
-          const firstPost = firstPostResponse && firstPostResponse.length > 0 ? firstPostResponse[0] : null;
-          
-          for (let i = 0; i < userPostsResponse.length; i++) {
-            const userPost = userPostsResponse[i];
+          for (let i = 0; i < postsInTopic.length; i++) {
+            const userPost = postsInTopic[i];
+			if(userPost.user_id != userData_bcpc.id) continue;
             let is_first_post = false;
             let response_time = null;
             let response_time_str = '-';
@@ -184,7 +177,7 @@ async function loadUserGamePosts_bcpc() {
             if (firstPost && userPost.id == firstPost.id) {
               is_first_post = true;
             } else if (CONFIG_bcpc.CHECK_RESPONSE_TIME && i > 0) {
-              const prevUserPost = userPostsResponse[i - 1];
+              const prevUserPost = postsInTopic[i - 1];
               response_time = userPost.posted - prevUserPost.posted;
               
               if (response_time > 0 && response_time <= CONFIG_bcpc.RESPONSE_INTERVAL_HOURS * 3600) {
@@ -238,6 +231,7 @@ async function loadUserGamePosts_bcpc() {
     throw error;
   }
 }
+
 
 /**
  * Загрузка всех постов банка
