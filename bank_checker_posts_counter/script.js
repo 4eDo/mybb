@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter; v 0.2");
+console.group("4eDo script Bank checker & Posts counter; v 0.3");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
@@ -176,7 +176,7 @@ async function loadUserGamePosts_bcpc() {
             
             if (firstPost && userPost.id == firstPost.id) {
               is_first_post = true;
-            } else if (CONFIG_bcpc.CHECK_RESPONSE_TIME && i > 0) {
+            } else if (CONFIG_bcpc.CHECK_RESPONSE_TIME && i > 1) {
               const prevUserPost = postsInTopic[i - 1];
               response_time = userPost.posted - prevUserPost.posted;
               
