@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter; v 0.6");
+console.group("4eDo script Bank checker & Posts counter; v 0.7");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
@@ -269,10 +269,8 @@ async function loadUserGamePosts_bcpc() {
  * Загрузка ВСЕХ постов в топике
  */
 async function getAllPostsInTopic_bcpc(topicId, totalPosts) {
-	totalPosts = totalPosts + 1; // Первый пост не входит в общее число постов!!!
-  try {
-    console.log(`Топик ${topicId}: всего постов ${totalPosts}`);
-    
+	totalPosts++; // Первый пост не входит в общее число постов!!!
+  try {    
     let allPosts = [];
     const requestsNeeded = Math.ceil(totalPosts / CONFIG_bcpc.POSTS_PER_REQUEST);
     
@@ -293,7 +291,6 @@ async function getAllPostsInTopic_bcpc(topicId, totalPosts) {
       }
       
       allPosts.push(...postsResponse);
-      console.log(`Топик ${topicId}: страница ${page + 1}/${requestsNeeded}, загружено ${postsResponse.length} постов`);
       
       if (page < requestsNeeded - 1) {
         await new Promise(resolve => setTimeout(resolve, 50));
