@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter; v 0.3");
+console.group("4eDo script Bank checker & Posts counter; v 0.4");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
@@ -122,7 +122,7 @@ async function loadUserGamePosts_bcpc() {
     while (hasMore) {
       const topicsResponse = await mybb_bcpc.call('topic.get', {
         forum_id: CONFIG_bcpc.GAME_FORUMS,
-        fields: ['id', 'subject', 'forum_id', 'first_post_id'],
+        fields: ['id', 'subject', 'forum_id', 'first_post_id', 'num_replies'],
         skip: skip,
         limit: CONFIG_bcpc.TOPICS_PER_REQUEST
       });
@@ -134,10 +134,6 @@ async function loadUserGamePosts_bcpc() {
       
       allGameTopics.push(...topicsResponse);
       skip += CONFIG_bcpc.TOPICS_PER_REQUEST;
-      
-      if (topicsResponse.length < CONFIG_bcpc.TOPICS_PER_REQUEST) {
-        hasMore = false;
-      }
       
       updateLoadingStatus_bcpc(TEMPLATES_bcpc.MESSAGES.LOADED_TOPICS.replace('{count}', allGameTopics.length));
       await new Promise(resolve => setTimeout(resolve, 50));
@@ -156,20 +152,15 @@ async function loadUserGamePosts_bcpc() {
           .replace('{current}', processedTopics)
           .replace('{total}', totalTopics));
         
-        const postsInTopic = await mybb_bcpc.call('post.get', {
-          topic_id: topic.id,
-          fields: ['id', 'message', 'posted', 'topic_id', 'user_id'],
-          sort_by: 'posted',
-          sort_dir: 'asc',
-          limit: CONFIG_bcpc.POSTS_PER_REQUEST
-        });
+        const allPostsInTopic = await getAllPostsInTopic_bcpc(topic.id, topic.num_replies);
         
-        if (postsInTopic && postsInTopic.length > 0) {
-          const firstPost = postsInTopic && postsInTopic.length > 0 ? postsInTopic[0] : null;
+        if (allPostsInTopic && allPostsInTopic.length > 0) {
+          const firstPost = allPostsInTopic[0];
           
-          for (let i = 0; i < postsInTopic.length; i++) {
-            const userPost = postsInTopic[i];
-			if(userPost.user_id != userData_bcpc.id) continue;
+          for (let i = 0; i < allPostsInTopic.length; i++) {
+            const userPost = allPostsInTopic[i];
+            if (userPost.user_id != userData_bcpc.id) continue;
+            
             let is_first_post = false;
             let response_time = null;
             let response_time_str = '-';
@@ -177,7 +168,7 @@ async function loadUserGamePosts_bcpc() {
             if (firstPost && userPost.id == firstPost.id) {
               is_first_post = true;
             } else if (CONFIG_bcpc.CHECK_RESPONSE_TIME && i > 1) {
-              const prevUserPost = postsInTopic[i - 1];
+              const prevUserPost = allPostsInTopic[i - 1];
               response_time = userPost.posted - prevUserPost.posted;
               
               if (response_time > 0 && response_time <= CONFIG_bcpc.RESPONSE_INTERVAL_HOURS * 3600) {
@@ -229,6 +220,54 @@ async function loadUserGamePosts_bcpc() {
   } catch (error) {
     console.error("Ошибка загрузки игровых постов:", error);
     throw error;
+  }
+}
+
+/**
+ * Загрузка ВСЕХ постов в топике
+ */
+async function getAllPostsInTopic_bcpc(topicId, totalPosts) {
+  try {
+    console.log(`Топик ${topicId}: всего постов ${totalPosts}`);
+    
+    let allPosts = [];
+    const requestsNeeded = Math.ceil(totalPosts / CONFIG_bcpc.POSTS_PER_REQUEST);
+    
+    for (let page = 0; page < requestsNeeded; page++) {
+      const skip = page * CONFIG_bcpc.POSTS_PER_REQUEST;
+      
+      const postsResponse = await mybb_bcpc.call('post.get', {
+        topic_id: topicId,
+        fields: ['id', 'message', 'posted', 'topic_id', 'user_id'],
+        sort_by: 'id',
+        sort_dir: 'asc',
+        skip: skip,
+        limit: CONFIG_bcpc.POSTS_PER_REQUEST
+      });
+      
+      if (!postsResponse || postsResponse.length === 0) {
+        break;
+      }
+      
+      allPosts.push(...postsResponse);
+      console.log(`Топик ${topicId}: страница ${page + 1}/${requestsNeeded}, загружено ${postsResponse.length} постов`);
+      
+      if (page < requestsNeeded - 1) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+    
+    console.log(`Топик ${topicId}: успешно загружено ${allPosts.length} из ${totalPosts} постов`);
+    
+    if (allPosts.length !== totalPosts) {
+      console.warn(`Топик ${topicId}: загружено ${allPosts.length} постов, но ожидалось ${totalPosts}`);
+    }
+    
+    return allPosts;
+    
+  } catch (error) {
+    console.error(`Ошибка загрузки топика ${topicId}:`, error);
+    return [];
   }
 }
 
