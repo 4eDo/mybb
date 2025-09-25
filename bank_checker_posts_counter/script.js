@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter; v 0.7");
+console.group("4eDo script Bank checker & Posts counter; v 0.8");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
@@ -230,9 +230,6 @@ async function loadUserGamePosts_bcpc() {
             });
           }
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 50));
-        
       } catch (error) {
         console.error(`Ошибка обработки топика ${topic.id}:`, error);
       }
