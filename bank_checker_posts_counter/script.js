@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter; v 0.5");
+console.group("4eDo script Bank checker & Posts counter; v 0.6");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
@@ -17,7 +17,7 @@ let bankData_bcpc = {
 };
 
 let forumCache_bcpc = {
-  topics: [],
+  topics: null,
   posts: new Map()
 };
 
