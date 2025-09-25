@@ -1,4 +1,4 @@
-console.group("4eDo script Bank checker & Posts counter; v 0.4");
+console.group("4eDo script Bank checker & Posts counter; v 0.5");
 console.log("%c~~ Скрипт для подсчёта постов пользователя и подготовки к отправке в банк. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.groupEnd();
 
@@ -14,6 +14,11 @@ let userData_bcpc = {
 let bankData_bcpc = {
   allPosts: new Map(),
   userPosts: new Map()
+};
+
+let forumCache_bcpc = {
+  topics: [],
+  posts: new Map()
 };
 
 const mybb_bcpc = new MybbSDK(CONFIG_bcpc.BASE_URL + "/", {
@@ -109,35 +114,72 @@ async function initUserPostAnalysis_bcpc() {
 
 
 /**
+ * Загрузка топиков с кэшем
+ */
+async function loadGameTopicsWithCache_bcpc() {
+  if (forumCache_bcpc.topics) {
+    console.log('Используем кэшированные топики');
+    return forumCache_bcpc.topics;
+  }
+  
+  console.log('Загружаем топики с сервера...');
+  let allGameTopics = [];
+  let skip = 0;
+  let hasMore = true;
+  
+  while (hasMore) {
+    const topicsResponse = await mybb_bcpc.call('topic.get', {
+      forum_id: CONFIG_bcpc.GAME_FORUMS,
+      fields: ['id', 'subject', 'forum_id', 'first_post_id', 'num_replies'],
+      skip: skip,
+      limit: CONFIG_bcpc.TOPICS_PER_REQUEST
+    });
+    
+    if (!topicsResponse || topicsResponse.length === 0) {
+      hasMore = false;
+      break;
+    }
+    
+    allGameTopics.push(...topicsResponse);
+    skip += CONFIG_bcpc.TOPICS_PER_REQUEST;
+    
+    if (topicsResponse.length < CONFIG_bcpc.TOPICS_PER_REQUEST) {
+      hasMore = false;
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  
+  forumCache_bcpc.topics = allGameTopics;
+  
+  console.log(`Загружено ${allGameTopics.length} топиков (сохранено в кэш)`);
+  return allGameTopics;
+}
+/**
+ * Загрузка постов топика с кэшем
+ */
+async function getTopicPostsWithCache_bcpc(topicId, numReplies) {
+  if (forumCache_bcpc.posts.has(topicId)) {
+    console.log(`Используем кэшированные посты топика ${topicId}`);
+    return forumCache_bcpc.posts.get(topicId);
+  }
+  
+  const posts = await getAllPostsInTopic_bcpc(topicId, numReplies);
+  
+  forumCache_bcpc.posts.set(topicId, posts);
+  console.log(`Посты топика ${topicId} сохранены в кэш (${posts.length} постов)`);
+  
+  return posts;
+}
+
+/**
  * Загрузка постов пользователя в игровых форумах
  */
 async function loadUserGamePosts_bcpc() {
   try {
     updateLoadingStatus_bcpc(TEMPLATES_bcpc.MESSAGES.LOADING_TOPICS);
     
-    let allGameTopics = [];
-    let skip = 0;
-    let hasMore = true;
-    
-    while (hasMore) {
-      const topicsResponse = await mybb_bcpc.call('topic.get', {
-        forum_id: CONFIG_bcpc.GAME_FORUMS,
-        fields: ['id', 'subject', 'forum_id', 'first_post_id', 'num_replies'],
-        skip: skip,
-        limit: CONFIG_bcpc.TOPICS_PER_REQUEST
-      });
-      
-      if (!topicsResponse || topicsResponse.length === 0) {
-        hasMore = false;
-        break;
-      }
-      
-      allGameTopics.push(...topicsResponse);
-      skip += CONFIG_bcpc.TOPICS_PER_REQUEST;
-      
-      updateLoadingStatus_bcpc(TEMPLATES_bcpc.MESSAGES.LOADED_TOPICS.replace('{count}', allGameTopics.length));
-      await new Promise(resolve => setTimeout(resolve, 50));
-    }
+    const allGameTopics = await loadGameTopicsWithCache_bcpc();
     
     console.log(`Найдено ${allGameTopics.length} топиков в игровых форумах`);
     
@@ -152,7 +194,7 @@ async function loadUserGamePosts_bcpc() {
           .replace('{current}', processedTopics)
           .replace('{total}', totalTopics));
         
-        const allPostsInTopic = await getAllPostsInTopic_bcpc(topic.id, topic.num_replies);
+        const allPostsInTopic = await getTopicPostsWithCache_bcpc(topic.id, topic.num_replies);
         
         if (allPostsInTopic && allPostsInTopic.length > 0) {
           const firstPost = allPostsInTopic[0];
@@ -220,54 +262,6 @@ async function loadUserGamePosts_bcpc() {
   } catch (error) {
     console.error("Ошибка загрузки игровых постов:", error);
     throw error;
-  }
-}
-
-/**
- * Загрузка ВСЕХ постов в топике
- */
-async function getAllPostsInTopic_bcpc(topicId, totalPosts) {
-  try {
-    console.log(`Топик ${topicId}: всего постов ${totalPosts}`);
-    
-    let allPosts = [];
-    const requestsNeeded = Math.ceil(totalPosts / CONFIG_bcpc.POSTS_PER_REQUEST);
-    
-    for (let page = 0; page < requestsNeeded; page++) {
-      const skip = page * CONFIG_bcpc.POSTS_PER_REQUEST;
-      
-      const postsResponse = await mybb_bcpc.call('post.get', {
-        topic_id: topicId,
-        fields: ['id', 'message', 'posted', 'topic_id', 'user_id'],
-        sort_by: 'id',
-        sort_dir: 'asc',
-        skip: skip,
-        limit: CONFIG_bcpc.POSTS_PER_REQUEST
-      });
-      
-      if (!postsResponse || postsResponse.length === 0) {
-        break;
-      }
-      
-      allPosts.push(...postsResponse);
-      console.log(`Топик ${topicId}: страница ${page + 1}/${requestsNeeded}, загружено ${postsResponse.length} постов`);
-      
-      if (page < requestsNeeded - 1) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-      }
-    }
-    
-    console.log(`Топик ${topicId}: успешно загружено ${allPosts.length} из ${totalPosts} постов`);
-    
-    if (allPosts.length !== totalPosts) {
-      console.warn(`Топик ${topicId}: загружено ${allPosts.length} постов, но ожидалось ${totalPosts}`);
-    }
-    
-    return allPosts;
-    
-  } catch (error) {
-    console.error(`Ошибка загрузки топика ${topicId}:`, error);
-    return [];
   }
 }
 
