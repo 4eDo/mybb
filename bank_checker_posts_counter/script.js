@@ -265,6 +265,56 @@ async function loadUserGamePosts_bcpc() {
   }
 }
 
+/**
+ * Загрузка ВСЕХ постов в топике
+ */
+async function getAllPostsInTopic_bcpc(topicId, totalPosts) {
+	totalPosts = totalPosts + 1; // Первый пост не входит в общее число постов!!!
+  try {
+    console.log(`Топик ${topicId}: всего постов ${totalPosts}`);
+    
+    let allPosts = [];
+    const requestsNeeded = Math.ceil(totalPosts / CONFIG_bcpc.POSTS_PER_REQUEST);
+    
+    for (let page = 0; page < requestsNeeded; page++) {
+      const skip = page * CONFIG_bcpc.POSTS_PER_REQUEST;
+      
+      const postsResponse = await mybb_bcpc.call('post.get', {
+        topic_id: topicId,
+        fields: ['id', 'message', 'posted', 'topic_id', 'user_id'],
+        sort_by: 'id',
+        sort_dir: 'asc',
+        skip: skip,
+        limit: CONFIG_bcpc.POSTS_PER_REQUEST
+      });
+      
+      if (!postsResponse || postsResponse.length === 0) {
+        break;
+      }
+      
+      allPosts.push(...postsResponse);
+      console.log(`Топик ${topicId}: страница ${page + 1}/${requestsNeeded}, загружено ${postsResponse.length} постов`);
+      
+      if (page < requestsNeeded - 1) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+    }
+    
+    console.log(`Топик ${topicId}: успешно загружено ${allPosts.length} из ${totalPosts} постов`);
+    
+    if (allPosts.length !== totalPosts) {
+      console.warn(`Топик ${topicId}: загружено ${allPosts.length} постов, но ожидалось ${totalPosts}`);
+    }
+    
+    return allPosts;
+    
+  } catch (error) {
+    console.error(`Ошибка загрузки топика ${topicId}:`, error);
+    return [];
+  }
+}
+
+
 
 /**
  * Загрузка всех постов банка
