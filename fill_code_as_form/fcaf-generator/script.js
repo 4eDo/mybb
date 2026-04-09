@@ -461,7 +461,7 @@ function populateForm(templateData) {
 
             // Заполняем поля
             lastItem.find('#field-name').val(field.name);
-            lastItem.find('#field-info').val(field.info).replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            lastItem.find('#field-info').val(field.info.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
             lastItem.find('#field-type').val(field.type);
             lastItem.find('#field-tmpl').val(field.tmpl);
             lastItem.find('#field-text-transform').val(field.textTransform || "");
