@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Собираем основные данные
             fieldData.name = listItem.find('#field-name').val();
-            fieldData.info = listItem.find('#field-info').val();
+            fieldData.info = listItem.find('#field-info').val().replace(/</g, '&lt;').replace(/>/g, '&gt;');
             fieldData.type = listItem.find('#field-type').val();
             fieldData.tmpl = listItem.find('#field-tmpl').val();
 
@@ -35,12 +35,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 fieldData.textTransform = textTransform;
             }
 
-            const defaultValue = listItem.find('#field-default').val();
+            const defaultValue = listItem.find('#field-default').val().replace(/</g, '&lt;').replace(/>/g, '&gt;');
             if (defaultValue) {
                 fieldData.default = defaultValue;
             }
 
-            const parentTmpl = listItem.find('#field-parentTmpl').val();
+            const parentTmpl = listItem.find('#field-parentTmpl').val().replace(/</g, '&lt;').replace(/>/g, '&gt;');
             if (parentTmpl) {
                 fieldData.parentTmpl = parentTmpl;
             }
@@ -50,12 +50,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 fieldData.targetVal = targetVal;
             }
 
-            const wrapperBefore = listItem.find('#field-wrapper-before').val().replaceAll("\\r\\n", "\r\n");
+            const wrapperBefore = listItem.find('#field-wrapper-before').val().replaceAll("\\r\\n", "\r\n").replace(/</g, '&lt;').replace(/>/g, '&gt;');
              if (wrapperBefore) {
                  fieldData.wrapperBefore = wrapperBefore;
              }
 
-             const wrapperAfter = listItem.find('#field-wrapper-after').val().replaceAll("\\r\\n", "\r\n");
+             const wrapperAfter = listItem.find('#field-wrapper-after').val().replaceAll("\\r\\n", "\r\n").replace(/</g, '&lt;').replace(/>/g, '&gt;');
              if (wrapperAfter) {
                  fieldData.wrapperAfter = wrapperAfter;
              }
@@ -461,15 +461,15 @@ function populateForm(templateData) {
 
             // Заполняем поля
             lastItem.find('#field-name').val(field.name);
-            lastItem.find('#field-info').val(field.info);
+            lastItem.find('#field-info').val(field.info).replace(/&lt;/g, '<').replace(/&gt;/g, '>');
             lastItem.find('#field-type').val(field.type);
             lastItem.find('#field-tmpl').val(field.tmpl);
             lastItem.find('#field-text-transform').val(field.textTransform || "");
-            lastItem.find('#field-default').val(field.default || "");
+            lastItem.find('#field-default').val(field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>') || "");
             lastItem.find('#field-parentTmpl').val(field.parentTmpl || "");
             lastItem.find('#field-parent-value').val(field.targetVal || "");
-            lastItem.find('#field-wrapper-before').val(field.wrapperBefore || "");
-            lastItem.find('#field-wrapper-after').val(field.wrapperAfter || "");
+            lastItem.find('#field-wrapper-before').val(field.wrapperBefore.replace(/&lt;/g, '<').replace(/&gt;/g, '>') || "");
+            lastItem.find('#field-wrapper-after').val(field.wrapperAfter.replace(/&lt;/g, '<').replace(/&gt;/g, '>') || "");
             lastItem.find('#field-val-if-empty').val(field.valIfEmpty || "");
 
             // Чекбокс "Зависит от родителя"
