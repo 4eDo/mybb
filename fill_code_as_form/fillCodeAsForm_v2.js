@@ -232,12 +232,12 @@ function renderFormField(field) {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
         if (field.default) {
-            inputElement.value = field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            inputElement.value = field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
         }
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
         if (field.default) {
-            inputElement.innerText = field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            inputElement.innerText = field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
         }
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
