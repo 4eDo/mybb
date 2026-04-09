@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.1.5");
+console.group("4eDo script fill_code_as_form v2.1.6");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -232,12 +232,12 @@ function renderFormField(field) {
         inputElement = document.createElement('input');
         inputElement.type = 'text';
         if (field.default) {
-            inputElement.value = field.default;
+            inputElement.value = field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
         }
     } else if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
         if (field.default) {
-            inputElement.innerText = field.default;
+            inputElement.innerText = field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
         }
     } else if (field.type === 'number') {
         inputElement = document.createElement('input');
@@ -283,7 +283,7 @@ function renderFormField(field) {
     }
 
     if (field.default) {
-        inputElement.setAttribute('data-default', field.default);
+        inputElement.setAttribute('data-default', field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
     }
 	
     inputElement.id = `field_${field.tmpl}`;
@@ -315,7 +315,7 @@ function generateFormHTML(form, table) {
 	    /* .replaceAll("<br>", `\n\n`) */
         tdLabel.innerHTML = `
             <label>${field.name}</label>
-            <div>${field.info.replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)}</div>
+            <div>${field.info.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)}</div>
         `;
 
         let tdInput = document.createElement('td');
@@ -408,7 +408,7 @@ function fillCode(id) {
 			if(inputValue == "none") {
 				code = code.replaceAll(placeholder, "");
 			} else {
-           			inputValue = before + inputValue + after;
+           			inputValue = before.replace(/&lt;/g, '<').replace(/&gt;/g, '>') + inputValue + after.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 				code = code.replaceAll(placeholder, inputValue);
 			}	
 		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")) {
