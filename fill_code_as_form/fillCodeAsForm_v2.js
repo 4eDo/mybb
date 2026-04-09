@@ -1,4 +1,4 @@
-console.group("4eDo script fill_code_as_form v2.1.6");
+console.group("4eDo script fill_code_as_form v2.1.7");
 console.log("%c~~ Скрипт для заполнения шаблонов через форму. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/fill_code_as_form# ");
 console.groupEnd();
@@ -315,7 +315,14 @@ function generateFormHTML(form, table) {
 	    /* .replaceAll("<br>", `\n\n`) */
         tdLabel.innerHTML = `
             <label>${field.name}</label>
-            <div>${field.info.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)}</div>
+            <div>${field.info
+				   .replace(/&lt;/g, '<')
+				   .replace(/&gt;/g, '>')
+				   .replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)
+				   .replaceAll("{{STRONG_TEMPLATE}}", `<code>&lt;strong&gt;ТЕКСТ&lt;/strong&gt;</code>`)
+				   .replaceAll("{{ITALIC_TEMPLATE}}", `<code>&lt;span style='font-style:italic'&gt;ТЕКСТ&lt;/span&gt;</code>`)
+				   .replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;em class='bbuline'&gt;ТЕКСТ&lt;/em&gt;</code>`)
+				 }</div>
         `;
 
         let tdInput = document.createElement('td');
