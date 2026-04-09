@@ -423,8 +423,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const templateNameMatch = fileContent.match(/<div class="tmpl_name">(.*?)<\/div>/);
         const forumIdsMatch = fileContent.match(/<div class="tmpl_forum_ids">(.*?)<\/div>/);
         const topicIdsMatch = fileContent.match(/<div class="tmpl_topic_ids">(.*?)<\/div>/);
-        const fieldsJsonMatch = fileContent.match(/<div class="tmpl_form">([\s\S]*?)<\/div>/);
-        const templateCodeMatch = fileContent.match(/<div class="tmpl_code">([\s\S]*?)<\/div>/);
+		// Ищем до </div> который идет перед <div class="tmpl_code">
+	    const fieldsJsonMatch = fileContent.match(/<div class="tmpl_form">([\s\S]*?)<\/div>\s*<div class="tmpl_code">/);
+	    
+	    // Ищем от <div class="tmpl_code"> до </div> который закрывает template и комментария
+	    const templateCodeMatch = fileContent.match(/<div class="tmpl_code">([\s\S]*?)<\/div>\s*<\/div>\s*<!-- конец ШАБЛОН/);
 
         // Сохраняем извлеченные данные в объект
         const templateData = {
