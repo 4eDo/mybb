@@ -318,6 +318,7 @@ function generateFormHTML(form, table) {
             <div>${field.info
 				   .replace(/&lt;/g, '<')
 				   .replace(/&gt;/g, '>')
+				   .replace(/&amp;/g, '&')
 				   .replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)
 				   .replaceAll("{{STRONG_TEMPLATE}}", `<code>&lt;strong&gt;ТЕКСТ&lt;/strong&gt;</code>`)
 				   .replaceAll("{{ITALIC_TEMPLATE}}", `<code>&lt;span style='font-style:italic'&gt;ТЕКСТ&lt;/span&gt;</code>`)
@@ -415,7 +416,7 @@ function fillCode(id) {
 			if(inputValue == "none") {
 				code = code.replaceAll(placeholder, "");
 			} else {
-           			inputValue = before.replace(/&lt;/g, '<').replace(/&gt;/g, '>') + inputValue + after.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+           			inputValue = before.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') + inputValue + after.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 				code = code.replaceAll(placeholder, inputValue);
 			}	
 		} else if(document.getElementById(`field_${field.tmpl}`).getAttribute("data-valIfEmpty")) {
