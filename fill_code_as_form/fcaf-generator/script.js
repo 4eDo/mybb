@@ -465,11 +465,11 @@ function populateForm(templateData) {
             lastItem.find('#field-type').val(field.type);
             lastItem.find('#field-tmpl').val(field.tmpl);
             lastItem.find('#field-text-transform').val(field.textTransform || "");
-            lastItem.find('#field-default').val(field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>') || "");
+            lastItem.find('#field-default').val(field.default ? field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>') : "");
             lastItem.find('#field-parentTmpl').val(field.parentTmpl || "");
             lastItem.find('#field-parent-value').val(field.targetVal || "");
-            lastItem.find('#field-wrapper-before').val(field.wrapperBefore.replace(/&lt;/g, '<').replace(/&gt;/g, '>') || "");
-            lastItem.find('#field-wrapper-after').val(field.wrapperAfter.replace(/&lt;/g, '<').replace(/&gt;/g, '>') || "");
+            lastItem.find('#field-wrapper-before').val(field.wrapperBefore ? field.wrapperBefore.replace(/&lt;/g, '<').replace(/&gt;/g, '>') : "");
+            lastItem.find('#field-wrapper-after').val(field.wrapperAfter ? field.wrapperAfter.replace(/&lt;/g, '<').replace(/&gt;/g, '>') : "");
             lastItem.find('#field-val-if-empty').val(field.valIfEmpty || "");
 
             // Чекбокс "Зависит от родителя"
