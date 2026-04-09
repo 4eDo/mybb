@@ -283,7 +283,7 @@ function renderFormField(field) {
     }
 
     if (field.default) {
-        inputElement.setAttribute('data-default', field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+        inputElement.setAttribute('data-default', field.default.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
     }
 	
     inputElement.id = `field_${field.tmpl}`;
