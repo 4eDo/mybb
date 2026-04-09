@@ -321,7 +321,7 @@ function generateFormHTML(form, table) {
 				   .replaceAll("{{LINK_TEMPLATE}}", `<code>&lt;a href='адрес_ссылки'&gt;текст_ссылки&lt;/a&gt;</code>`)
 				   .replaceAll("{{STRONG_TEMPLATE}}", `<code>&lt;strong&gt;ТЕКСТ&lt;/strong&gt;</code>`)
 				   .replaceAll("{{ITALIC_TEMPLATE}}", `<code>&lt;span style='font-style:italic'&gt;ТЕКСТ&lt;/span&gt;</code>`)
-				   .replaceAll("{{UNDERLINE_TEMPLATE}}", `<code>&lt;em class='bbuline'&gt;ТЕКСТ&lt;/em&gt;</code>`)
+				   .replaceAll("{{UNDERLINE_TEMPLATE}}", `<code>&lt;span style='text-decoration: underline;'&gt;ТЕКСТ&lt;/span&gt;</code>`)
 				 }</div>
         `;
 
