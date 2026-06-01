@@ -1,0 +1,314 @@
+<!-- Счётчик постов и активности от 4eDo -->
+<div id="activityCalc">
+	<div>
+		<label>Начало интервала:</label>
+		<input type="datetime-local" id="intervalStart" step="60">
+	</div>
+	<div>
+		<label>Конец интервала:</label>
+		<input type="datetime-local" id="intervalEnd" step="60">
+	</div>
+	<div>
+		<input type="button" id="startCalc" value="Начать расчёт">
+	</div>
+	<div id="statusLine"></div>
+	<div id="errorBlock"></div>
+	<div>
+		<h3>По активности</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>№</th>
+					<th>Имя</th>
+					<th>Сообщений</th>
+				</tr>
+			</thead>
+			<tbody id="activityTableBody"></tbody>
+		</table>
+		<div id="activityShowAll" style="display:none;">
+			<input type="button" class="showAllBtn" data-table="activity" value="Показать всё">
+		</div>
+	</div>
+	<div>
+		<h3>По игровым постам</h3>
+		<table>
+			<thead>
+				<tr>
+					<th>№</th>
+					<th>Имя</th>
+					<th>Сообщений</th>
+				</tr>
+			</thead>
+			<tbody id="gameTableBody"></tbody>
+		</table>
+		<div id="gameShowAll" style="display:none;">
+			<input type="button" class="showAllBtn" data-table="game" value="Показать всё">
+		</div>
+	</div>
+</div>
+
+<script>
+$(function() {
+
+	const ACTIVITY_CONFIG = {
+		GAME_FORUMS: [11, 12, 14, 22, 23], // Игровые форумы + архив эпизодов
+		EXCLUDE_FORUMS: [18, 19], // Админка, реклама и т.п.
+		DELAY: 150, // Пауза в мс между запросами (чтобы не словить бан от платформы)
+		MAX_RETRIES: 3, // Попыток запросить посты в одной теме (на случай сетевых неполадок)
+		PREVIEW_ROWS: 10 // Выводить строк в таблице по умолчанию
+	};
+
+	const baseUrl = window.location.origin + '/api.php?method=';
+	const delay = ACTIVITY_CONFIG.DELAY;
+	const maxRetries = ACTIVITY_CONFIG.MAX_RETRIES;
+
+	const activityMap = new Map();
+	const gameMap = new Map();
+
+	const allActivityData = [];
+	const allGameData = [];
+
+	let intervalStart = null;
+	let intervalEnd = null;
+
+	function setStatus(text) {
+		$('#statusLine').text(text);
+	}
+
+	function addError(text) {
+		$('#errorBlock').append('<div>' + text + '</div>');
+	}
+
+	function apiCall(method, params) {
+		const url = baseUrl + method + '&format=json&' + $.param(params);
+		return $.getJSON(url);
+	}
+
+	function delayPromise(ms) {
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	async function fetchAllForums() {
+		const excludeStr = ACTIVITY_CONFIG.EXCLUDE_FORUMS.join(',');
+		let allForums = [];
+		let skip = 0;
+		const limit = 100;
+
+		while (true) {
+			const data = await apiCall('board.getForums', { exclude: excludeStr, skip: skip, limit: limit });
+			await delayPromise(delay);
+			const forums = data.response || data;
+			if (!Array.isArray(forums) || !forums.length) break;
+			allForums = allForums.concat(forums);
+			if (forums.length < limit) break;
+			skip += limit;
+		}
+		return allForums;
+	}
+
+	async function fetchTopicsForForums(forumIds) {
+		let allTopics = [];
+		let skip = 0;
+		const limit = 100;
+
+		while (true) {
+			const data = await apiCall('topic.get', {
+				forum_id: forumIds.join(','),
+				sort_by: 'last_post',
+				sort_dir: 'desc',
+				skip: skip,
+				limit: limit,
+				fields: 'id,last_post_date,forum_id'
+			});
+			await delayPromise(delay);
+			const topics = data.response || data;
+			if (!Array.isArray(topics) || !topics.length) break;
+
+			let stop = false;
+			for (const topic of topics) {
+				const lastPostDate = parseInt(topic.last_post_date) * 1000;
+				if (lastPostDate < intervalStart) {
+					stop = true;
+					break;
+				}
+				if (lastPostDate >= intervalStart && lastPostDate <= intervalEnd) {
+					allTopics.push(topic);
+				}
+			}
+			if (stop || topics.length < limit) break;
+			skip += limit;
+		}
+		return allTopics;
+	}
+
+	async function processPostsChunk(topicId, skip, limit) {
+		const data = await apiCall('post.get', {
+			topic_id: topicId,
+			sort_by: 'posted',
+			sort_dir: 'desc',
+			skip: skip,
+			limit: limit,
+			fields: 'id,user_id,username,posted,forum_id'
+		});
+		await delayPromise(delay);
+		const posts = data.response || data;
+		return Array.isArray(posts) ? posts : [];
+	}
+
+	async function processPostsForTopic(topicId, forumId) {
+		let skip = 0;
+		const limit = 100;
+
+		while (skip < 1000) {
+			let posts;
+			let retries = 0;
+
+			while (retries < maxRetries) {
+				try {
+					posts = await processPostsChunk(topicId, skip, limit);
+					break;
+				} catch (e) {
+					retries++;
+					if (retries < maxRetries) {
+						await delayPromise(delay);
+					} else {
+						throw e;
+					}
+				}
+			}
+
+			if (!posts.length) break;
+
+			let stop = false;
+			for (const post of posts) {
+				const postDate = parseInt(post.posted) * 1000;
+				if (postDate < intervalStart) {
+					stop = true;
+					break;
+				}
+				if (postDate >= intervalStart && postDate <= intervalEnd) {
+					const map = ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) ? gameMap : activityMap;
+					const userId = post.user_id;
+					const username = post.username;
+					if (!map.has(userId)) {
+						map.set(userId, { username: username, count: 0 });
+					}
+					map.get(userId).count++;
+				}
+			}
+			if (stop || posts.length < limit) break;
+			skip += limit;
+		}
+	}
+
+	function buildSortedArray(map) {
+		return Array.from(map.values()).sort((a, b) => b.count - a.count);
+	}
+
+	function fillTablePreview(sortedData, tbodyId, showAllId, allDataArray) {
+		allDataArray.length = 0;
+		allDataArray.push(...sortedData);
+		const tbody = $(tbodyId);
+		tbody.empty();
+		const preview = sortedData.slice(0, ACTIVITY_CONFIG.PREVIEW_ROWS);
+		preview.forEach((entry, index) => {
+			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td></tr>`;
+			tbody.append(row);
+		});
+		if (sortedData.length > ACTIVITY_CONFIG.PREVIEW_ROWS) {
+			$(showAllId).show();
+		} else {
+			$(showAllId).hide();
+		}
+	}
+
+	function fillTableFull(sortedData, tbodyId, showAllId) {
+		const tbody = $(tbodyId);
+		tbody.empty();
+		sortedData.forEach((entry, index) => {
+			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td></tr>`;
+			tbody.append(row);
+		});
+		$(showAllId).hide();
+	}
+
+	$('#startCalc').on('click', async function() {
+		const startVal = $('#intervalStart').val();
+		const endVal = $('#intervalEnd').val();
+		if (!startVal || !endVal) {
+			alert('Укажите начало и конец интервала.');
+			return;
+		}
+		intervalStart = new Date(startVal).getTime();
+		intervalEnd = new Date(endVal).getTime();
+		if (intervalStart >= intervalEnd) {
+			alert('Начало интервала должно быть раньше конца.');
+			return;
+		}
+
+		activityMap.clear();
+		gameMap.clear();
+		allActivityData.length = 0;
+		allGameData.length = 0;
+		$('#activityTableBody').empty();
+		$('#gameTableBody').empty();
+		$('#activityShowAll').hide();
+		$('#gameShowAll').hide();
+		$('#errorBlock').empty();
+
+		setStatus('Получение списка форумов');
+		let forums;
+		try {
+			forums = await fetchAllForums();
+		} catch (e) {
+			setStatus('Ошибка получения форумов');
+			addError('Ошибка получения форумов: ' + (e.statusText || e.message));
+			return;
+		}
+
+		const forumIds = forums.map(f => f.id);
+		if (!forumIds.length) {
+			setStatus('Нет форумов для обработки');
+			return;
+		}
+
+		setStatus('Получение списка тем для форумов (0 из ' + forumIds.length + ')');
+		let topics;
+		try {
+			topics = await fetchTopicsForForums(forumIds);
+		} catch (e) {
+			setStatus('Ошибка получения тем');
+			addError('Ошибка получения тем: ' + (e.statusText || e.message));
+			return;
+		}
+
+		const totalTopics = topics.length;
+		for (let i = 0; i < totalTopics; i++) {
+			const topic = topics[i];
+			setStatus('Обработка сообщений тем (' + (i + 1) + ' из ' + totalTopics + ')');
+			try {
+				await processPostsForTopic(topic.id, topic.forum_id);
+			} catch (e) {
+				addError('Ошибка обработки темы ' + topic.id + ': ' + (e.statusText || e.message));
+			}
+		}
+
+		setStatus('Заполнение таблиц');
+		const sortedActivity = buildSortedArray(activityMap);
+		const sortedGame = buildSortedArray(gameMap);
+		fillTablePreview(sortedActivity, '#activityTableBody', '#activityShowAll', allActivityData);
+		fillTablePreview(sortedGame, '#gameTableBody', '#gameShowAll', allGameData);
+		setStatus('Готово');
+	});
+
+	$(document).on('click', '.showAllBtn', function() {
+		const table = $(this).data('table');
+		if (table === 'activity') {
+			fillTableFull(allActivityData, '#activityTableBody', '#activityShowAll');
+		} else if (table === 'game') {
+			fillTableFull(allGameData, '#gameTableBody', '#gameShowAll');
+		}
+	});
+
+});
+</script>
