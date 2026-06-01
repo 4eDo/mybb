@@ -120,7 +120,7 @@ $(function() {
 				sort_dir: 'desc',
 				skip: skip,
 				limit: limit,
-				fields: 'id,last_post_date,forum_id'
+				fields: 'id,last_post_date,forum_id,init_post'
 			});
 			await delayPromise(delay);
 			const topics = data.response || data;
@@ -157,7 +157,7 @@ $(function() {
 		return Array.isArray(posts) ? posts : [];
 	}
 
-	async function processPostsForTopic(topicId, forumId) {
+	async function processPostsForTopic(topicId, forumId, initPostId) {
 		let skip = 0;
 		const limit = 100;
 
@@ -189,7 +189,8 @@ $(function() {
 					break;
 				}
 				if (postDate >= intervalStart && postDate <= intervalEnd) {
-					const map = ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) ? gameMap : activityMap;
+					const isInitPost = (parseInt(post.id) === parseInt(initPostId));
+					const map = (ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) ?? !isInitPost) ? gameMap : activityMap;
 					const userId = post.user_id;
 					const username = post.username;
 
@@ -331,7 +332,7 @@ $(function() {
 			const topic = topics[i];
 			setStatus('Обработка сообщений тем (' + (i + 1) + ' из ' + totalTopics + ')');
 			try {
-				await processPostsForTopic(topic.id, topic.forum_id);
+				await processPostsForTopic(topic.id, topic.forum_id, topic.init_post);
 			} catch (e) {
 				addError('Ошибка обработки темы ' + topic.id + ': ' + (e.statusText || e.message));
 			}
