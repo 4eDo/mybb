@@ -52,7 +52,7 @@ $(function() {
 
 	const ACTIVITY_CONFIG = {
 		GAME_FORUMS: [11, 12, 14, 22, 23], // Игровые форумы + архив эпизодов
-		EXCLUDE_FORUMS: [18, 19], // Админка, реклама и т.п.
+		EXCLUDE_FORUMS: [1, 18, 19], // Админка, реклама и т.п.
 		DELAY: 150, // Пауза в мс между запросами (чтобы не словить бан от платформы)
 		MAX_RETRIES: 3, // Попыток запросить посты в одной теме (на случай сетевых неполадок)
 		PREVIEW_ROWS: 10 // Выводить строк в таблице по умолчанию
@@ -239,8 +239,12 @@ $(function() {
 			alert('Укажите начало и конец интервала.');
 			return;
 		}
-		intervalStart = new Date(startVal).getTime();
-		intervalEnd = new Date(endVal).getTime();
+		
+		const startLocal = new Date(startVal);
+		const endLocal = new Date(endVal);
+		intervalStart = startLocal.getTime() - startLocal.getTimezoneOffset() * 60000;
+		intervalEnd = endLocal.getTime() - endLocal.getTimezoneOffset() * 60000;
+		
 		if (intervalStart >= intervalEnd) {
 			alert('Начало интервала должно быть раньше конца.');
 			return;
