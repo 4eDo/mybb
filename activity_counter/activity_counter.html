@@ -21,6 +21,7 @@
 					<th>№</th>
 					<th>Имя</th>
 					<th>Сообщений</th>
+					<th>Список</th>
 				</tr>
 			</thead>
 			<tbody id="activityTableBody"></tbody>
@@ -37,6 +38,7 @@
 					<th>№</th>
 					<th>Имя</th>
 					<th>Сообщений</th>
+					<th>Список</th>
 				</tr>
 			</thead>
 			<tbody id="gameTableBody"></tbody>
@@ -131,7 +133,7 @@ $(function() {
 					stop = true;
 					break;
 				}
-				if (lastPostDate >= intervalStart && lastPostDate <= intervalEnd) {
+				if (lastPostDate >= intervalStart) {
 					allTopics.push(topic);
 				}
 			}
@@ -148,7 +150,7 @@ $(function() {
 			sort_dir: 'desc',
 			skip: skip,
 			limit: limit,
-			fields: 'id,user_id,username,posted,forum_id'
+			fields: 'id,user_id,username,posted,forum_id,subject'
 		});
 		await delayPromise(delay);
 		const posts = data.response || data;
@@ -190,10 +192,22 @@ $(function() {
 					const map = ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) ? gameMap : activityMap;
 					const userId = post.user_id;
 					const username = post.username;
+
 					if (!map.has(userId)) {
-						map.set(userId, { username: username, count: 0 });
+						map.set(userId, {
+							username: username,
+							count: 0,
+							posts: []
+						});
 					}
-					map.get(userId).count++;
+
+					const userData = map.get(userId);
+					userData.count++;
+					userData.posts.push({
+						id: post.id,
+						subject: post.subject || 'Без темы',
+						posted: post.posted
+					});
 				}
 			}
 			if (stop || posts.length < limit) break;
@@ -205,6 +219,30 @@ $(function() {
 		return Array.from(map.values()).sort((a, b) => b.count - a.count);
 	}
 
+	function formatDate(timestamp) {
+		const date = new Date(parseInt(timestamp) * 1000);
+		const day = String(date.getDate()).padStart(2, '0');
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const year = date.getFullYear();
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		return `${day}.${month}.${year} ${hours}:${minutes}`;
+	}
+
+	function buildPostsListHtml(posts) {
+		if (!posts || posts.length === 0) return '';
+		const sorted = [...posts].sort((a, b) => parseInt(b.posted) - parseInt(a.posted));
+		let html = '<details><summary>Список постов</summary>';
+		for (const post of sorted) {
+			const pid = post.id;
+			const subject = post.subject;
+			const time = formatDate(post.posted);
+			html += `<a href="/viewtopic.php?pid=${pid}#p${pid}">#${pid} - ${subject}</a> ${time}<br>`;
+		}
+		html += '</details>';
+		return html;
+	}
+
 	function fillTablePreview(sortedData, tbodyId, showAllId, allDataArray) {
 		allDataArray.length = 0;
 		allDataArray.push(...sortedData);
@@ -212,7 +250,8 @@ $(function() {
 		tbody.empty();
 		const preview = sortedData.slice(0, ACTIVITY_CONFIG.PREVIEW_ROWS);
 		preview.forEach((entry, index) => {
-			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td></tr>`;
+			const postsList = buildPostsListHtml(entry.posts);
+			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td><td>${postsList}</td></tr>`;
 			tbody.append(row);
 		});
 		if (sortedData.length > ACTIVITY_CONFIG.PREVIEW_ROWS) {
@@ -226,7 +265,8 @@ $(function() {
 		const tbody = $(tbodyId);
 		tbody.empty();
 		sortedData.forEach((entry, index) => {
-			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td></tr>`;
+			const postsList = buildPostsListHtml(entry.posts);
+			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td><td>${postsList}</td></tr>`;
 			tbody.append(row);
 		});
 		$(showAllId).hide();
@@ -239,12 +279,12 @@ $(function() {
 			alert('Укажите начало и конец интервала.');
 			return;
 		}
-		
+
 		const startLocal = new Date(startVal);
 		const endLocal = new Date(endVal);
-		intervalStart = startLocal.getTime() - startLocal.getTimezoneOffset() * 60000;
-		intervalEnd = endLocal.getTime() - endLocal.getTimezoneOffset() * 60000;
-		
+		intervalStart = new Date(startVal).getTime();
+		intervalEnd = new Date(endVal).getTime();
+
 		if (intervalStart >= intervalEnd) {
 			alert('Начало интервала должно быть раньше конца.');
 			return;
