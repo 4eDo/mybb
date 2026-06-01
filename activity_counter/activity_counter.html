@@ -190,7 +190,7 @@ $(function() {
 				}
 				if (postDate >= intervalStart && postDate <= intervalEnd) {
 					const isInitPost = (parseInt(post.id) === parseInt(initPostId));
-					const map = (ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) ?? !isInitPost) ? gameMap : activityMap;
+					const map = (ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) && !isInitPost) ? gameMap : activityMap;
 					const userId = post.user_id;
 					const username = post.username;
 
