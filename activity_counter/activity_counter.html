@@ -1,5 +1,8 @@
 <!-- Счётчик постов и активности от 4eDo -->
 <div id="activityCalc">
+	<style>
+		#activityCalc tr:hover {background-color: #80808030;}
+    </style>
 	<div>
 		<label>Начало интервала:</label>
 		<input type="datetime-local" id="intervalStart" step="60">
@@ -189,13 +192,14 @@ $(function() {
 					break;
 				}
 				if (postDate >= intervalStart && postDate <= intervalEnd) {
-					const isInitPost = (parseInt(post.id) === parseInt(initPostId));
+					const isInitPost = (post.id == initPostId);
 					const map = (ACTIVITY_CONFIG.GAME_FORUMS.includes(parseInt(forumId)) && !isInitPost) ? gameMap : activityMap;
 					const userId = post.user_id;
 					const username = post.username;
 
 					if (!map.has(userId)) {
 						map.set(userId, {
+							uid: userId,
 							username: username,
 							count: 0,
 							posts: []
@@ -252,7 +256,7 @@ $(function() {
 		const preview = sortedData.slice(0, ACTIVITY_CONFIG.PREVIEW_ROWS);
 		preview.forEach((entry, index) => {
 			const postsList = buildPostsListHtml(entry.posts);
-			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td><td>${postsList}</td></tr>`;
+			const row = `<tr><td>${index + 1}</td><td>[id: <a href="/profile.php?id=${entry.uid}">${entry.uid}</a>] ${entry.username}</td><td>${entry.count}</td><td>${postsList}</td></tr>`;
 			tbody.append(row);
 		});
 		if (sortedData.length > ACTIVITY_CONFIG.PREVIEW_ROWS) {
@@ -267,7 +271,7 @@ $(function() {
 		tbody.empty();
 		sortedData.forEach((entry, index) => {
 			const postsList = buildPostsListHtml(entry.posts);
-			const row = `<tr><td>${index + 1}</td><td>${entry.username}</td><td>${entry.count}</td><td>${postsList}</td></tr>`;
+			const row = `<tr><td>${index + 1}</td><td>[id: <a href="/profile.php?id=${entry.uid}">${entry.uid}</a>] ${entry.username}</td><td>${entry.count}</td><td>${postsList}</td></tr>`;
 			tbody.append(row);
 		});
 		$(showAllId).hide();
@@ -330,9 +334,9 @@ $(function() {
 		const totalTopics = topics.length;
 		for (let i = 0; i < totalTopics; i++) {
 			const topic = topics[i];
-			setStatus('Обработка сообщений тем (' + (i + 1) + ' из ' + totalTopics + ')');
+			setStatus('Обработка сообщений в темах (' + (i + 1) + ' из ' + totalTopics + ')');
 			try {
-				await processPostsForTopic(topic.id, topic.forum_id, topic.init_post);
+				await processPostsForTopic(topic.id, topic.forum_id, topic.init_id);
 			} catch (e) {
 				addError('Ошибка обработки темы ' + topic.id + ': ' + (e.statusText || e.message));
 			}
