@@ -1,3 +1,59 @@
+Вот исправления по трём проблемам:
+
+**1) Блокировка кнопки на время генерации:**
+```javascript
+// В обработчике $('#startCalc').on('click', async function() { ... }), сразу после проверок и перед очисткой:
+$('#startCalc').prop('disabled', true);
+
+// В конце обработчика, перед завершением (и в каждом return с ошибкой):
+$('#startCalc').prop('disabled', false);
+```
+
+**2) Защита от задвоения постов (проверка при добавлении):**
+```javascript
+// В функции processPostsForTopic, внутри условия "if (postDate >= intervalStart && postDate <= intervalEnd)", 
+// перед добавлением в userData.posts добавить проверку:
+if (!userData.posts.some(p => p.id == post.id)) {
+    userData.posts.push({
+        id: post.id,
+        subject: post.subject || 'Без темы',
+        posted: post.posted
+    });
+}
+```
+
+**3) Переход на Map (удаление массивов allActivityData и allGameData):**
+```javascript
+// Удалить строки:
+const allActivityData = [];
+const allGameData = [];
+
+// В fillTablePreview убрать параметр allDataArray и работу с ним:
+function fillTablePreview(sortedData, tbodyId, showAllId) { ... }
+
+// В fillTableFull изменить логику на работу с Map:
+function fillTableFull(tableId, showAllId) {
+    const map = tableId === 'activity' ? activityMap : gameMap;
+    const sortedData = buildSortedArray(map);
+    // ... остальной код
+}
+
+// В обработчике клика showAllBtn:
+$(document).on('click', '.showAllBtn', function() {
+    const table = $(this).data('table');
+    if (table === 'activity') {
+        fillTableFull('activity', '#activityTableBody', '#activityShowAll');
+    } else if (table === 'game') {
+        fillTableFull('game', '#gameTableBody', '#gameShowAll');
+    }
+});
+```
+
+---
+
+**Полный исправленный код:**
+
+```html
 <!-- Счётчик постов и активности от 4eDo -->
 <div id="activityCalc">
 	<style>
@@ -69,9 +125,6 @@ $(function() {
 
 	const activityMap = new Map();
 	const gameMap = new Map();
-
-	const allActivityData = [];
-	const allGameData = [];
 
 	let intervalStart = null;
 	let intervalEnd = null;
@@ -208,11 +261,13 @@ $(function() {
 
 					const userData = map.get(userId);
 					userData.count++;
-					userData.posts.push({
-						id: post.id,
-						subject: post.subject || 'Без темы',
-						posted: post.posted
-					});
+					if (!userData.posts.some(p => p.id == post.id)) {
+						userData.posts.push({
+							id: post.id,
+							subject: post.subject || 'Без темы',
+							posted: post.posted
+						});
+					}
 				}
 			}
 			if (stop || posts.length < limit) break;
@@ -248,9 +303,7 @@ $(function() {
 		return html;
 	}
 
-	function fillTablePreview(sortedData, tbodyId, showAllId, allDataArray) {
-		allDataArray.length = 0;
-		allDataArray.push(...sortedData);
+	function fillTablePreview(sortedData, tbodyId, showAllId) {
 		const tbody = $(tbodyId);
 		tbody.empty();
 		const preview = sortedData.slice(0, ACTIVITY_CONFIG.PREVIEW_ROWS);
@@ -266,8 +319,10 @@ $(function() {
 		}
 	}
 
-	function fillTableFull(sortedData, tbodyId, showAllId) {
-		const tbody = $(tbodyId);
+	function fillTableFull(tableId, showAllId) {
+		const map = tableId === 'activity' ? activityMap : gameMap;
+		const tbody = tableId === 'activity' ? $('#activityTableBody') : $('#gameTableBody');
+		const sortedData = buildSortedArray(map);
 		tbody.empty();
 		sortedData.forEach((entry, index) => {
 			const postsList = buildPostsListHtml(entry.posts);
@@ -295,10 +350,10 @@ $(function() {
 			return;
 		}
 
+		$('#startCalc').prop('disabled', true);
+
 		activityMap.clear();
 		gameMap.clear();
-		allActivityData.length = 0;
-		allGameData.length = 0;
 		$('#activityTableBody').empty();
 		$('#gameTableBody').empty();
 		$('#activityShowAll').hide();
@@ -312,12 +367,14 @@ $(function() {
 		} catch (e) {
 			setStatus('Ошибка получения форумов');
 			addError('Ошибка получения форумов: ' + (e.statusText || e.message));
+			$('#startCalc').prop('disabled', false);
 			return;
 		}
 
 		const forumIds = forums.map(f => f.id);
 		if (!forumIds.length) {
 			setStatus('Нет форумов для обработки');
+			$('#startCalc').prop('disabled', false);
 			return;
 		}
 
@@ -328,6 +385,7 @@ $(function() {
 		} catch (e) {
 			setStatus('Ошибка получения тем');
 			addError('Ошибка получения тем: ' + (e.statusText || e.message));
+			$('#startCalc').prop('disabled', false);
 			return;
 		}
 
@@ -345,19 +403,21 @@ $(function() {
 		setStatus('Заполнение таблиц');
 		const sortedActivity = buildSortedArray(activityMap);
 		const sortedGame = buildSortedArray(gameMap);
-		fillTablePreview(sortedActivity, '#activityTableBody', '#activityShowAll', allActivityData);
-		fillTablePreview(sortedGame, '#gameTableBody', '#gameShowAll', allGameData);
+		fillTablePreview(sortedActivity, '#activityTableBody', '#activityShowAll');
+		fillTablePreview(sortedGame, '#gameTableBody', '#gameShowAll');
 		setStatus('Готово');
+		$('#startCalc').prop('disabled', false);
 	});
 
 	$(document).on('click', '.showAllBtn', function() {
 		const table = $(this).data('table');
 		if (table === 'activity') {
-			fillTableFull(allActivityData, '#activityTableBody', '#activityShowAll');
+			fillTableFull('activity', '#activityShowAll');
 		} else if (table === 'game') {
-			fillTableFull(allGameData, '#gameTableBody', '#gameShowAll');
+			fillTableFull('game', '#gameShowAll');
 		}
 	});
 
 });
 </script>
+```
