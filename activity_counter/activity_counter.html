@@ -1,59 +1,3 @@
-Вот исправления по трём проблемам:
-
-**1) Блокировка кнопки на время генерации:**
-```javascript
-// В обработчике $('#startCalc').on('click', async function() { ... }), сразу после проверок и перед очисткой:
-$('#startCalc').prop('disabled', true);
-
-// В конце обработчика, перед завершением (и в каждом return с ошибкой):
-$('#startCalc').prop('disabled', false);
-```
-
-**2) Защита от задвоения постов (проверка при добавлении):**
-```javascript
-// В функции processPostsForTopic, внутри условия "if (postDate >= intervalStart && postDate <= intervalEnd)", 
-// перед добавлением в userData.posts добавить проверку:
-if (!userData.posts.some(p => p.id == post.id)) {
-    userData.posts.push({
-        id: post.id,
-        subject: post.subject || 'Без темы',
-        posted: post.posted
-    });
-}
-```
-
-**3) Переход на Map (удаление массивов allActivityData и allGameData):**
-```javascript
-// Удалить строки:
-const allActivityData = [];
-const allGameData = [];
-
-// В fillTablePreview убрать параметр allDataArray и работу с ним:
-function fillTablePreview(sortedData, tbodyId, showAllId) { ... }
-
-// В fillTableFull изменить логику на работу с Map:
-function fillTableFull(tableId, showAllId) {
-    const map = tableId === 'activity' ? activityMap : gameMap;
-    const sortedData = buildSortedArray(map);
-    // ... остальной код
-}
-
-// В обработчике клика showAllBtn:
-$(document).on('click', '.showAllBtn', function() {
-    const table = $(this).data('table');
-    if (table === 'activity') {
-        fillTableFull('activity', '#activityTableBody', '#activityShowAll');
-    } else if (table === 'game') {
-        fillTableFull('game', '#gameTableBody', '#gameShowAll');
-    }
-});
-```
-
----
-
-**Полный исправленный код:**
-
-```html
 <!-- Счётчик постов и активности от 4eDo -->
 <div id="activityCalc">
 	<style>
@@ -420,4 +364,3 @@ $(function() {
 
 });
 </script>
-```
