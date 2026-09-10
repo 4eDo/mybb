@@ -1,4 +1,5 @@
-console.group("4eDo script loadPostById v1.0");
+<script>
+console.group("4eDo script loadPostById v1.1");
 console.log("%c~~ Скрипт для загрузки сообщения по pid. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/loadPostById# ");
 console.groupEnd();
@@ -45,8 +46,8 @@ async function lpbi(MSG_ID, targetId) {
         txt.innerHTML = message;
         let html = txt.value;
 
-        // 2) Меняем [html]...[/html] и [indent]
-        html = replaceCustomTags(html);
+        // 2) Меняем [html]...[/html] и [indent].
+        html = replaceCustomTags(html, targetId+"inner");
 
         result.innerHTML = html;
     } catch (err) {
@@ -55,25 +56,18 @@ async function lpbi(MSG_ID, targetId) {
     }
 }
 
-function makeUuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
-}
-
 /**
- * Заменяет теги на HTML
+ * Заменяет теги на HTML.
+ * @param {string} html     — исходный HTML
+ * @param {string} scopeId  — id контейнера, к которому скоупим стили
  */
-function replaceCustomTags(html) {
+function replaceCustomTags(html, scopeId) {
     html = html.replace(/\[html\]([\s\S]*?)\[\/html\]/g, function (_, inner) {
-        const uuid = makeUuid();
-        const scoped = scopeStyles(inner, uuid);
+        const scoped = scopeStyles(inner, scopeId);
 
         return '<div class="html-post-box" style="padding-bottom:1em">' +
             '<div class="html-inner">' +
-            '<div class="html-content" id="' + uuid + '">' +
+            '<div class="html-content" id="' + scopeId + '">' +
             scoped +
             '</div>' +
             '</div>' +
@@ -96,11 +90,13 @@ function scopeStyles(html, uuid) {
         return '<style' + attrs + '>\n' + scopedCss + '\n</style>';
     });
 }
+
 function scopeCss(css, uuid) {
     const prefix = '#' + uuid;
     css = css.replace(/\/\*[\s\S]*?\*\//g, '');
     return parseBlocks(css, prefix).join('\n');
 }
+
 function parseBlocks(css, prefix) {
     const out = [];
     let i = 0;
@@ -156,3 +152,4 @@ function parseBlocks(css, prefix) {
     }
     return out;
 }
+</script>
