@@ -1,4 +1,3 @@
-<script>
 console.group("4eDo script loadPostById v1.1");
 console.log("%c~~ Скрипт для загрузки сообщения по pid. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/loadPostById# ");
@@ -152,4 +151,3 @@ function parseBlocks(css, prefix) {
     }
     return out;
 }
-</script>
