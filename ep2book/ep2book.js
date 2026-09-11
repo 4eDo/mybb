@@ -1,4 +1,4 @@
-console.group("4eDo script ep2book v1.1");
+console.group("4eDo script ep2book v1.3");
 console.log("%c~~ Скрипт для сохранения эпизода как книги .epub . %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/ep2book# ");
 console.groupEnd();
@@ -804,15 +804,34 @@ console.groupEnd();
       const existing = pickJSZip_ep2book(window.JSZip);
       if (existing) { resolve(existing); return; }
 
-      const s = document.createElement(`script`);
-      s.src = `https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js`;
-      s.onload = function () {
-        const jz = pickJSZip_ep2book(window.JSZip);
-        if (!jz) { reject(new Error(`JSZip не инициализировался`)); return; }
-        resolve(jz);
-      };
-      s.onerror = function () { reject(new Error(`Не удалось загрузить JSZip`)); };
-      document.head.appendChild(s);
+      const url = `https://4edo.github.io/mybb/ep2book/jszip.min.js`;
+      fetch(url)
+        .then(r => {
+          if (!r.ok) throw new Error(`Не удалось скачать JSZip: HTTP ` + r.status);
+          return r.text();
+        })
+        .then(code => {
+          const runner = new Function(
+            `define`, `module`, `exports`, `self`, `global`, `window`,
+            `"use strict";\n` + code + `\n;return (typeof JSZip !== "undefined") ? JSZip : null;`
+          );
+          let jz = null;
+          try {
+            jz = runner.call(window, undefined, undefined, undefined, window, window, window);
+          } catch (e) {
+            reject(new Error(`Ошибка выполнения JSZip: ` + (e && e.message ? e.message : e)));
+            return;
+          }
+          const picked = pickJSZip_ep2book(jz) || pickJSZip_ep2book(window.JSZip);
+          if (!picked) {
+            reject(new Error(`JSZip загрузился, но не инициализировался`));
+            return;
+          }
+          resolve(picked);
+        })
+        .catch(err => {
+          reject(new Error(`Не удалось загрузить JSZip: ` + (err && err.message ? err.message : err)));
+        });
     });
   }
 
@@ -1912,8 +1931,22 @@ console.groupEnd();
 
       html += `<div class="ep2book-build-status"></div>`;
       html += `<p><button type="button" class="ep2book-download-epub">Скачать .epub</button></p>`;
+      html += `<p>`
+           +  `<button type="button" class="ep2book-back-to-step4">← Вернуться к параметрам книги</button> `
+           +  `<button type="button" class="ep2book-back-to-step5">← Вернуться к заголовкам</button>`
+           +  `</p>`;
       $step.html(html).prop(`hidden`, false);
     }
+
+    $step.on(`click.ep2book-step7`, `.ep2book-back-to-step4`, function () {
+      renderStep4_ep2book();
+      showStep(4);
+    });
+
+    $step.on(`click.ep2book-step7`, `.ep2book-back-to-step5`, function () {
+      renderStep5_ep2book();
+      showStep(5);
+    });
 
     $step.on(`click.ep2book-step7`, `.ep2book-download-epub`, async function () {
       const $btn = $(this);
