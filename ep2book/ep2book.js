@@ -1,3 +1,8 @@
+console.group("4eDo script ep2book v1.1");
+console.log("%c~~ Скрипт для сохранения эпизода как книги .epub . %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
+console.log("More info: https://github.com/4eDo/mybb/tree/main/ep2book# ");
+console.groupEnd();
+
 (function ($) {
   'use strict';
 
@@ -22,7 +27,10 @@
       coversFound: [],
       chapterTemplate: 'Глава {{num}}. {{AUTHOR}}',
       partTemplate: 'Часть {{num}}. {{SUBJECT}}',
-      partNumbering: 'continuous'
+      partNumbering: 'continuous',
+      imageMap: null,
+      failedImages: [],
+      skipAllManualImages: false
     }
   };
 
@@ -575,10 +583,10 @@
          +  `</div>`;
     html += `</div>`;
 
-    $modal.html(html).prop('hidden', false);
+    $modal.html(html).prop(`hidden`, false);
 
-    $modal.off('.ep2book-q');
-    $modal.on('click.ep2book-q', '.ep2book-q-apply', function () {
+    $modal.off(`.ep2book-q`);
+    $modal.on(`click.ep2book-q`, `.ep2book-q-apply`, function () {
       const kind = $modal.find(`input[name="ep2book-q-kind"]:checked`).val();
       let answer = { kind: kind };
 
@@ -608,11 +616,11 @@
         q.answer = answer;
       }
 
-      $modal.prop('hidden', true).empty();
+      $modal.prop(`hidden`, true).empty();
       continueValidationQueue_ep2book();
     });
 
-    $modal.on('click.ep2book-q', '.ep2book-q-skip', function () {
+    $modal.on(`click.ep2book-q`, `.ep2book-q-skip`, function () {
       const answer = { kind: `keep` };
       const applyAll = $modal.find(`.ep2book-q-all`).is(`:checked`);
       if (applyAll) {
@@ -626,17 +634,17 @@
       } else {
         q.answer = answer;
       }
-      $modal.prop('hidden', true).empty();
+      $modal.prop(`hidden`, true).empty();
       continueValidationQueue_ep2book();
     });
 
-    $modal.on('click.ep2book-q', '.ep2book-q-cancel', function () {
+    $modal.on(`click.ep2book-q`, `.ep2book-q-cancel`, function () {
       state.questions.forEach(x => { x.answer = null; });
-      $modal.prop('hidden', true).empty();
+      $modal.prop(`hidden`, true).empty();
       renderStep6_ep2book();
     });
 
-    $modal.on('change.ep2book-q', 'input[name="ep2book-q-kind"]', function () {
+    $modal.on(`change.ep2book-q`, `input[name="ep2book-q-kind"]`, function () {
       const v = $(this).val();
       $modal.find(`.ep2book-q-text, .ep2book-q-link, .ep2book-q-link-label, .ep2book-q-replace`).prop(`disabled`, true);
       if (v === `text`) $modal.find(`.ep2book-q-text`).prop(`disabled`, false);
@@ -783,12 +791,26 @@
 
   // ---------- Сборка EPUB ----------
 
+  function pickJSZip_ep2book(candidate) {
+    if (!candidate) return null;
+    if (typeof candidate === `function`) return candidate;
+    if (typeof candidate.default === `function`) return candidate.default;
+    if (typeof candidate.JSZip === `function`) return candidate.JSZip;
+    return null;
+  }
+
   function loadJSZip_ep2book() {
     return new Promise((resolve, reject) => {
-      if (window.JSZip) { resolve(window.JSZip); return; }
+      const existing = pickJSZip_ep2book(window.JSZip);
+      if (existing) { resolve(existing); return; }
+
       const s = document.createElement(`script`);
       s.src = `https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js`;
-      s.onload = function () { resolve(window.JSZip); };
+      s.onload = function () {
+        const jz = pickJSZip_ep2book(window.JSZip);
+        if (!jz) { reject(new Error(`JSZip не инициализировался`)); return; }
+        resolve(jz);
+      };
       s.onerror = function () { reject(new Error(`Не удалось загрузить JSZip`)); };
       document.head.appendChild(s);
     });
@@ -827,124 +849,192 @@
     return s;
   }
 
-  async function buildEpubBlob_ep2book() {
-    const JSZip = await loadJSZip_ep2book();
+  // ---------- Работа с картинками ----------
 
-    const structure = buildBookStructure_ep2book();
-    const classMap = extractComputedStyles_ep2book();
-    const css = buildCssFromClassMap_ep2book(classMap);
+  function arrayBufferToHex_ep2book(buf) {
+    const bytes = new Uint8Array(buf);
+    let hex = ``;
+    for (let i = 0; i < bytes.length; i++) {
+      const b = bytes[i].toString(16);
+      hex += b.length === 1 ? `0` + b : b;
+    }
+    return hex;
+  }
 
-    const zip = new JSZip();
+  async function sha1BlobHex_ep2book(blob) {
+    const ab = await blob.arrayBuffer();
+    const digest = await crypto.subtle.digest(`SHA-1`, ab);
+    return arrayBufferToHex_ep2book(digest);
+  }
 
-    zip.file(`mimetype`, `application/epub+zip`, { compression: `STORE` });
+  function detectExtFromBlobOrName_ep2book(blob, nameOrUrl) {
+    if (blob && blob.type && /^image\//i.test(blob.type)) {
+      const sub = blob.type.split(`/`)[1].toLowerCase();
+      if (sub === `jpeg`) return `jpg`;
+      if (sub === `svg+xml`) return `svg`;
+      if (/^[a-z0-9]+$/.test(sub)) return sub;
+    }
+    const m = String(nameOrUrl || ``).match(/\.(png|jpe?g|gif|webp|svg|bmp|avif)(\?|#|$)/i);
+    if (m) {
+      const e = m[1].toLowerCase();
+      return e === `jpeg` ? `jpg` : e;
+    }
+    return `bin`;
+  }
 
-    zip.file(`META-INF/container.xml`,
-      `<?xml version="1.0" encoding="UTF-8"?>\n`
-    + `<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n`
-    + `  <rootfiles>\n`
-    + `    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>\n`
-    + `  </rootfiles>\n`
-    + `</container>\n`);
+  async function tryFetchImage_ep2book(url) {
+    try {
+      const r = await fetch(url, { mode: `cors`, credentials: `omit` });
+      if (r.ok) return await r.blob();
+    } catch (e) { /* ignore */ }
 
-    zip.file(`OEBPS/style.css`,
-      `body { font-family: serif; line-height: 1.5; }\n`
-    + `h1, h2, h3 { font-weight: bold; }\n`
-    + `p { margin: 0 0 0.6em 0; text-indent: 1.2em; }\n`
-    + `p:first-of-type { text-indent: 0; }\n`
-    + `img { max-width: 100%; height: auto; }\n`
-    + `.ep2book-title-page { text-align: center; margin-top: 20%; }\n`
-    + `.ep2book-title-page img { max-width: 80%; }\n`
-    + `nav ol { list-style: none; padding-left: 0; }\n`
-    + `nav ol ol { padding-left: 1.2em; }\n`
-    + css);
+    try {
+      const r = await fetch(url, { mode: `cors`, cache: `no-store` });
+      if (r.ok) return await r.blob();
+    } catch (e) { /* ignore */ }
 
-    let coverExt = null;
-    let coverPath = null;
-    if (state.book.cover) {
-      coverExt = detectImageExt_ep2book(state.book.cover);
-      coverPath = `OEBPS/cover.` + coverExt;
-      if (state.book.cover.fromForum && state.book.cover.sourceUrl) {
-        try {
-          const blob = await fetchAsBlob_ep2book(state.book.cover.sourceUrl);
-          zip.file(coverPath, blob);
-        } catch (e) {
-          console.warn(`ep2book: не удалось скачать обложку с форума`, e);
-          coverPath = null;
-        }
-      } else if (state.book.cover.blob) {
-        zip.file(coverPath, state.book.cover.blob);
-      } else if (state.book.cover.dataUrl) {
-        const blob = dataUrlToBlob_ep2book(state.book.cover.dataUrl);
-        zip.file(coverPath, blob);
-      }
+    return null;
+  }
+
+  function collectAllImageUrls_ep2book() {
+    const urls = [];
+    const seen = {};
+
+    function push(u) {
+      if (!u) return;
+      if (/^data:/i.test(u)) return;
+      if (/^images\//i.test(u)) return;
+      if (/^\.\.?\//.test(u)) return;
+      if (seen[u]) return;
+      seen[u] = true;
+      urls.push(u);
     }
 
-    const files = [];
-    const navItems = [];
-
-    const titleHtml = buildTitlePageXhtml_ep2book(coverPath);
-    zip.file(`OEBPS/title.xhtml`, titleHtml);
-    files.push({ id: `title`, href: `title.xhtml`, mediaType: `application/xhtml+xml`, title: state.book.title, inSpine: true, linear: `yes` });
-    navItems.push({ href: `title.xhtml`, title: `Титул` });
-
-    structure.parts.forEach((part, partIdx) => {
-      let partNav = null;
-      if (state.mode === `multi`) {
-        const partTitle = buildPartTitle_ep2book(part, partIdx);
-        const partHtml = buildPartXhtml_ep2book(part, partIdx);
-        const partHref = `part` + (partIdx + 1) + `.xhtml`;
-        zip.file(`OEBPS/` + partHref, partHtml);
-        files.push({ id: `part` + (partIdx + 1), href: partHref, mediaType: `application/xhtml+xml`, title: partTitle, inSpine: true, linear: `yes` });
-        partNav = { href: partHref, title: partTitle, children: [] };
-        navItems.push(partNav);
-      }
-
-      part.chapters.forEach(chapter => {
-        const href = `chapter-` + partIdx + `-` + chapter.postId + `.xhtml`;
-        const chHtml = buildChapterXhtml_ep2book(chapter);
-        zip.file(`OEBPS/` + href, chHtml);
-        files.push({
-          id: `ch-` + partIdx + `-` + chapter.postId,
-          href: href,
-          mediaType: `application/xhtml+xml`,
-          title: chapter.title,
-          inSpine: true,
-          linear: `yes`
-        });
-        const navItem = { href: href, title: chapter.title };
-        if (partNav) partNav.children.push(navItem);
-        else navItems.push(navItem);
+    state.topicOrder.forEach(tid => {
+      (state.posts[tid] || []).forEach(post => {
+        const re = /<img[^>]+src=["']([^"']+)["']/gi;
+        let m;
+        while ((m = re.exec(post.cleanHtml || ``)) !== null) {
+          push(m[1]);
+        }
       });
     });
 
-    zip.file(`OEBPS/nav.xhtml`, buildNavXhtml_ep2book(navItems, structure));
-    zip.file(`OEBPS/toc.ncx`, buildTocNcx_ep2book(navItems, structure));
-    zip.file(`OEBPS/content.opf`, buildOpf_ep2book(files, coverPath, coverExt, structure));
-
-    return await zip.generateAsync({
-      type: `blob`,
-      mimeType: `application/epub+zip`,
-      compression: `DEFLATE`
-    });
-  }
-
-  function detectImageExt_ep2book(cover) {
-    const name = cover.name || cover.sourceUrl || ``;
-    const m = String(name).match(/\.(png|jpe?g|gif|webp|svg)(\?|$)/i);
-    if (m) return m[1].toLowerCase().replace(`jpeg`, `jpg`);
-    if (cover.dataUrl) {
-      const m2 = cover.dataUrl.match(/^data:image\/([a-z0-9+.-]+);/i);
-      if (m2) return m2[1].toLowerCase().replace(`jpeg`, `jpg`).replace(`svg+xml`, `svg`);
+    if (state.book.cover && state.book.cover.fromForum && state.book.cover.sourceUrl) {
+      push(state.book.cover.sourceUrl);
     }
-    return `jpg`;
+
+    return urls;
   }
 
-  function fetchAsBlob_ep2book(url) {
-    return fetch(url, { mode: `cors` }).then(r => {
-      if (!r.ok) throw new Error(`HTTP ` + r.status);
-      return r.blob();
+  async function preloadAllImages_ep2book(onProgress, manualResolver) {
+    if (!state.book.imageMap) state.book.imageMap = {};
+
+    const urls = collectAllImageUrls_ep2book();
+    const failed = [];
+
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      if (typeof onProgress === `function`) onProgress(i, urls.length, url);
+
+      if (state.book.imageMap[url]) continue;
+
+      let blob = await tryFetchImage_ep2book(url);
+      let ext = null;
+
+      if (blob) {
+        ext = detectExtFromBlobOrName_ep2book(blob, url);
+      } else {
+        const manual = await manualResolver(url);
+        if (manual && manual.blob) {
+          blob = manual.blob;
+          ext = manual.ext || detectExtFromBlobOrName_ep2book(blob, manual.name || url);
+        }
+      }
+
+      if (blob && ext) {
+        const hex = await sha1BlobHex_ep2book(blob);
+        const path = `images/` + hex + `.` + ext;
+        state.book.imageMap[url] = { blob: blob, ext: ext, path: path };
+      } else {
+        failed.push(url);
+      }
+    }
+
+    if (typeof onProgress === `function`) onProgress(urls.length, urls.length, ``);
+    state.book.failedImages = failed;
+    return { map: state.book.imageMap, failed: failed };
+  }
+
+  function rewriteImageSrcs_ep2book(html) {
+    const map = state.book.imageMap || {};
+    return String(html).replace(
+      /(<img[^>]+src=["'])([^"']+)(["'])/gi,
+      function (full, pre, url, post) {
+        if (map[url] && map[url].path) {
+          return pre + map[url].path + post;
+        }
+        return full;
+      }
+    );
+  }
+
+  function askManualImage_ep2book(url, idx, total) {
+    return new Promise(resolve => {
+      const $modal = $('#ep2book-app .ep2book-modal');
+
+      let html = `<div class="ep2book-modal-box">`;
+      html += `<div class="ep2book-modal-progress">Картинка ` + (idx + 1) + ` из ` + total + `</div>`;
+      html += `<h4>Не удалось скачать картинку</h4>`;
+      html += `<p><a href="` + escapeAttr_ep2book(url) + `" target="_blank" rel="noopener">` + escapeHtml_ep2book(url) + `</a></p>`;
+      html += `<p class="ep2book-muted">Ссылки могут устаревать. Если оставить её в книге, со временем изображение может пропасть. ` +
+              `Вы можете скачать картинку вручную и загрузить файл.</p>`;
+      html += `<div class="ep2book-modal-options">`;
+      html += `  <input type="file" class="ep2book-image-file" accept="image/*">`;
+      html += `</div>`;
+      html += `<div class="ep2book-modal-actions">`;
+      html += `  <button type="button" class="ep2book-image-upload" disabled>Загрузить файл</button> `;
+      html += `  <button type="button" class="ep2book-image-skip">Оставить ссылкой</button> `;
+      html += `  <button type="button" class="ep2book-image-skip-all">Оставить все такие же ссылкой</button>`;
+      html += `</div>`;
+      html += `</div>`;
+
+      $modal.html(html).prop(`hidden`, false);
+
+      let chosen = null;
+
+      $modal.off(`.ep2book-image`);
+      $modal.on(`change.ep2book-image`, `.ep2book-image-file`, function () {
+        chosen = this.files && this.files[0] ? this.files[0] : null;
+        $modal.find(`.ep2book-image-upload`).prop(`disabled`, !chosen);
+      });
+
+      $modal.on(`click.ep2book-image`, `.ep2book-image-upload`, function () {
+        if (!chosen) return;
+        const ext = detectExtFromBlobOrName_ep2book(chosen, chosen.name);
+        $modal.prop(`hidden`, true).empty();
+        resolve({ blob: chosen, ext: ext, name: chosen.name });
+      });
+
+      $modal.on(`click.ep2book-image`, `.ep2book-image-skip`, function () {
+        $modal.prop(`hidden`, true).empty();
+        resolve(null);
+      });
+
+      $modal.on(`click.ep2book-image`, `.ep2book-image-skip-all`, function () {
+        state.book.skipAllManualImages = true;
+        $modal.prop(`hidden`, true).empty();
+        resolve(null);
+      });
     });
   }
+
+  async function manualImageResolver_ep2book(url, idx, total) {
+    if (state.book.skipAllManualImages) return null;
+    return await askManualImage_ep2book(url, idx, total);
+  }
+
+  // ---------- XHTML/OPF-сборщики ----------
 
   function dataUrlToBlob_ep2book(dataUrl) {
     const parts = String(dataUrl).split(`,`);
@@ -957,17 +1047,23 @@
     return new Blob([arr], { type: mimeType });
   }
 
-  function buildTitlePageXhtml_ep2book(coverPath) {
+  function buildCoverXhtml_ep2book(imagePath) {
+    let html = xhtmlHeader_ep2book(`Обложка`);
+    html += `<section epub:type="cover" class="ep2book-cover-page">\n`;
+    html += `<img src="` + xmlEscape_ep2book(imagePath) + `" alt="Обложка"/>\n`;
+    html += `</section>\n`;
+    html += xhtmlFooter_ep2book();
+    return html;
+  }
+
+  function buildTitleXhtml_ep2book(bodyHtml) {
     let html = xhtmlHeader_ep2book(state.book.title || `Титул`);
-    html += `<div class="ep2book-title-page">\n`;
-    if (coverPath) {
-      html += `<p><img src="` + xmlEscape_ep2book(coverPath.replace(/^OEBPS\//, ``)) + `" alt="Обложка"/></p>\n`;
-    }
+    html += `<section epub:type="titlepage">\n`;
     html += `<h1>` + xmlEscape_ep2book(state.book.title || ``) + `</h1>\n`;
-    const authorLine = state.book.authors.map(a => a.value).filter(Boolean).join(`, `);
-    if (authorLine) html += `<p><strong>` + xmlEscape_ep2book(authorLine) + `</strong></p>\n`;
-    if (state.book.series) html += `<p>` + xmlEscape_ep2book(state.book.series) + `</p>\n`;
-    html += `</div>\n`;
+    if (bodyHtml) {
+      html += makeXhtmlSafe_ep2book(bodyHtml) + `\n`;
+    }
+    html += `</section>\n`;
     html += xhtmlFooter_ep2book();
     return html;
   }
@@ -985,24 +1081,29 @@
   function buildPartXhtml_ep2book(part, partIdx) {
     const title = buildPartTitle_ep2book(part, partIdx);
     let html = xhtmlHeader_ep2book(title);
+    html += `<section epub:type="part">\n`;
     html += `<h1>` + xmlEscape_ep2book(title) + `</h1>\n`;
     const firstPost = (state.posts[part.tid] || [])[0];
     if (firstPost && firstPost.cleanHtml) {
-      html += makeXhtmlSafe_ep2book(firstPost.cleanHtml) + `\n`;
+      html += makeXhtmlSafe_ep2book(rewriteImageSrcs_ep2book(firstPost.cleanHtml)) + `\n`;
     }
+    html += `</section>\n`;
     html += xhtmlFooter_ep2book();
     return html;
   }
 
   function buildChapterXhtml_ep2book(chapter) {
+    const bodyHtml = rewriteImageSrcs_ep2book(chapter.html);
     let html = xhtmlHeader_ep2book(chapter.title);
+    html += `<section epub:type="chapter">\n`;
     html += `<h2>` + xmlEscape_ep2book(chapter.title) + `</h2>\n`;
-    html += makeXhtmlSafe_ep2book(chapter.html) + `\n`;
+    html += makeXhtmlSafe_ep2book(bodyHtml) + `\n`;
+    html += `</section>\n`;
     html += xhtmlFooter_ep2book();
     return html;
   }
 
-  function buildNavXhtml_ep2book(navItems, structure) {
+  function buildNavXhtml_ep2book(navItems, structure, coverHref) {
     let html = `<?xml version="1.0" encoding="utf-8"?>\n`
              + `<!DOCTYPE html>\n`
              + `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ru">\n`
@@ -1014,6 +1115,9 @@
              + `<nav epub:type="toc" id="toc">\n`
              + `<h1>Оглавление</h1>\n`
              + `<ol>\n`;
+    if (coverHref) {
+      html += `<li><a href="` + xmlEscape_ep2book(coverHref) + `">Обложка</a></li>\n`;
+    }
     navItems.forEach(item => {
       html += `<li><a href="` + xmlEscape_ep2book(item.href) + `">` + xmlEscape_ep2book(item.title || ``) + `</a>`;
       if (item.children && item.children.length) {
@@ -1025,7 +1129,18 @@
       }
       html += `</li>\n`;
     });
-    html += `</ol>\n</nav>\n</body>\n</html>\n`;
+    html += `</ol>\n</nav>\n`;
+
+    html += `<nav epub:type="landmarks" hidden="hidden">\n<h2>Landmarks</h2>\n<ol>\n`;
+    if (coverHref) {
+      html += `<li><a epub:type="cover" href="` + xmlEscape_ep2book(coverHref) + `">Обложка</a></li>\n`;
+    }
+    html += `<li><a epub:type="toc" href="nav.xhtml">Оглавление</a></li>\n`;
+    html += `<li><a epub:type="titlepage" href="title.xhtml">Титул</a></li>\n`;
+    html += `<li><a epub:type="bodymatter" href="` + xmlEscape_ep2book(navItems.length ? navItems[0].href : `title.xhtml`) + `">Начало</a></li>\n`;
+    html += `</ol>\n</nav>\n`;
+
+    html += `</body>\n</html>\n`;
     return html;
   }
 
@@ -1043,38 +1158,60 @@
              + `  <navMap>\n`;
 
     let playOrder = 1;
-    function ncxPoint(item, depth) {
+    function ncxPoint(item) {
       let s = `    <navPoint id="navPoint-` + playOrder + `" playOrder="` + playOrder + `">\n`;
       s += `      <navLabel><text>` + xmlEscape_ep2book(item.title || ``) + `</text></navLabel>\n`;
       s += `      <content src="` + xmlEscape_ep2book(item.href) + `"/>\n`;
       playOrder++;
       if (item.children && item.children.length) {
-        item.children.forEach(ch => { s += ncxPoint(ch, depth + 1); });
+        item.children.forEach(ch => { s += ncxPoint(ch); });
       }
       s += `    </navPoint>\n`;
       return s;
     }
-    navItems.forEach(item => { html += ncxPoint(item, 0); });
+    navItems.forEach(item => { html += ncxPoint(item); });
 
     html += `  </navMap>\n</ncx>\n`;
     return html;
   }
 
-  function buildOpf_ep2book(files, coverPath, coverExt, structure) {
+  function buildOpf_ep2book(files, coverHtmlHref, coverImagePath, structure) {
     const uid = `ep2book-` + Date.now();
     let manifest = `    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>\n`
                  + `    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>\n`
                  + `    <item id="css" href="style.css" media-type="text/css"/>\n`;
+
+    if (coverHtmlHref) {
+      manifest += `    <item id="cover" href="` + xmlEscape_ep2book(coverHtmlHref) + `" media-type="application/xhtml+xml"/>\n`;
+    }
+
     files.forEach(f => {
       manifest += `    <item id="` + xmlEscape_ep2book(f.id) + `" href="` + xmlEscape_ep2book(f.href) + `" media-type="` + f.mediaType + `"/>\n`;
     });
-    if (coverPath) {
-      manifest += `    <item id="cover-image" href="` + xmlEscape_ep2book(coverPath.replace(/^OEBPS\//, ``)) + `" media-type="image/` + (coverExt === `jpg` ? `jpeg` : coverExt) + `" properties="cover-image"/>\n`;
+
+    const imageMap = state.book.imageMap || {};
+    const imageIds = {};
+    Object.keys(imageMap).forEach(url => {
+      const entry = imageMap[url];
+      const id = `img-` + entry.path.replace(/[^a-z0-9]/gi, `-`);
+      if (imageIds[id]) return;
+      imageIds[id] = true;
+      const ext = entry.ext === `jpg` ? `jpeg` : entry.ext;
+      manifest += `    <item id="` + xmlEscape_ep2book(id) + `" href="` + xmlEscape_ep2book(entry.path) + `" media-type="image/` + ext + `"/>\n`;
+    });
+
+    if (coverImagePath && !/^https?:/i.test(coverImagePath)) {
+      const already = manifest.indexOf(`href="` + coverImagePath + `"`) !== -1;
+      if (!already) {
+        const ext = (coverImagePath.match(/\.([a-z0-9]+)$/i) || [])[1] || `jpeg`;
+        const mediaExt = ext === `jpg` ? `jpeg` : ext;
+        manifest += `    <item id="cover-image" href="` + xmlEscape_ep2book(coverImagePath) + `" media-type="image/` + mediaExt + `" properties="cover-image"/>\n`;
+      }
     }
 
-    let spine = `    <itemref idref="title"/>\n`;
+    let spine = ``;
+    if (coverHtmlHref) spine += `    <itemref idref="cover"/>\n`;
     files.forEach(f => {
-      if (f.id === `title`) return;
       spine += `    <itemref idref="` + xmlEscape_ep2book(f.id) + `"/>\n`;
     });
 
@@ -1099,6 +1236,158 @@
          + `  <manifest>\n` + manifest + `  </manifest>\n`
          + `  <spine toc="ncx">\n` + spine + `  </spine>\n`
          + `</package>\n`;
+  }
+
+  async function buildEpubBlob_ep2book(onStatus) {
+    const JSZip = await loadJSZip_ep2book();
+
+    const structure = buildBookStructure_ep2book();
+    const classMap = extractComputedStyles_ep2book();
+    const css = buildCssFromClassMap_ep2book(classMap);
+
+    let manualIdx = 0;
+    const totalUrls = collectAllImageUrls_ep2book().length;
+    await preloadAllImages_ep2book(
+      function (done, total, url) {
+        if (typeof onStatus === `function`) {
+          onStatus(`Картинки: ` + done + ` / ` + total);
+        }
+      },
+      async function (url) {
+        manualIdx++;
+        return await manualImageResolver_ep2book(url, manualIdx - 1, totalUrls);
+      }
+    );
+
+    const zip = new JSZip();
+
+    zip.file(`mimetype`, `application/epub+zip`, { compression: `STORE` });
+
+    zip.file(`META-INF/container.xml`,
+      `<?xml version="1.0" encoding="UTF-8"?>\n`
+    + `<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">\n`
+    + `  <rootfiles>\n`
+    + `    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>\n`
+    + `  </rootfiles>\n`
+    + `</container>\n`);
+
+    zip.file(`OEBPS/style.css`,
+      `body { font-family: serif; line-height: 1.5; }\n`
+    + `h1, h2, h3 { font-weight: bold; }\n`
+    + `p { margin: 0 0 0.6em 0; text-indent: 1.2em; }\n`
+    + `p:first-of-type { text-indent: 0; }\n`
+    + `img { max-width: 100%; height: auto; }\n`
+    + `.ep2book-cover-page { text-align: center; margin: 0; padding: 0; }\n`
+    + `.ep2book-cover-page img { max-width: 100%; max-height: 100%; }\n`
+    + `nav ol { list-style: none; padding-left: 0; }\n`
+    + `nav ol ol { padding-left: 1.2em; }\n`
+    + css);
+
+    const imageMap = state.book.imageMap || {};
+    Object.keys(imageMap).forEach(url => {
+      const entry = imageMap[url];
+      zip.file(`OEBPS/` + entry.path, entry.blob);
+    });
+
+    let coverHtmlHref = null;
+    let coverImagePath = null;
+
+    if (state.book.cover) {
+      if (state.book.cover.fromForum && state.book.cover.sourceUrl) {
+        const entry = imageMap[state.book.cover.sourceUrl];
+        if (entry) coverImagePath = entry.path;
+        else coverImagePath = state.book.cover.sourceUrl;
+      } else if (state.book.cover.blob) {
+        const ext = detectExtFromBlobOrName_ep2book(state.book.cover.blob, state.book.cover.name || ``);
+        const hex = await sha1BlobHex_ep2book(state.book.cover.blob);
+        const path = `images/cover-` + hex + `.` + ext;
+        zip.file(`OEBPS/` + path, state.book.cover.blob);
+        coverImagePath = path;
+      } else if (state.book.cover.dataUrl) {
+        const blob = dataUrlToBlob_ep2book(state.book.cover.dataUrl);
+        const ext = detectExtFromBlobOrName_ep2book(blob, state.book.cover.name || ``);
+        const hex = await sha1BlobHex_ep2book(blob);
+        const path = `images/cover-` + hex + `.` + ext;
+        zip.file(`OEBPS/` + path, blob);
+        coverImagePath = path;
+      }
+
+      if (coverImagePath) {
+        zip.file(`OEBPS/cover.xhtml`, buildCoverXhtml_ep2book(coverImagePath));
+        coverHtmlHref = `cover.xhtml`;
+      }
+    }
+
+    const files = [];
+    const navItems = [];
+
+    const titleHref = `title.xhtml`;
+    const firstTid = state.topicOrder[0];
+    const firstPost = (state.posts[firstTid] || [])[0];
+    const titleBodyHtml = firstPost
+      ? rewriteImageSrcs_ep2book(firstPost.cleanHtml || ``)
+      : ``;
+    zip.file(`OEBPS/` + titleHref, buildTitleXhtml_ep2book(titleBodyHtml));
+    files.push({
+      id: `title`,
+      href: titleHref,
+      mediaType: `application/xhtml+xml`,
+      title: state.book.title || `Титул`,
+      inSpine: true
+    });
+    navItems.push({ href: titleHref, title: state.book.title || `Титул` });
+
+    structure.parts.forEach((part, partIdx) => {
+      let partNav = null;
+      if (state.mode === `multi`) {
+        const partTitle = buildPartTitle_ep2book(part, partIdx);
+        const partHtml = buildPartXhtml_ep2book(part, partIdx);
+        const partHref = `part` + (partIdx + 1) + `.xhtml`;
+        zip.file(`OEBPS/` + partHref, partHtml);
+        files.push({
+          id: `part` + (partIdx + 1),
+          href: partHref,
+          mediaType: `application/xhtml+xml`,
+          title: partTitle,
+          inSpine: true
+        });
+        partNav = { href: partHref, title: partTitle, children: [] };
+        navItems.push(partNav);
+      }
+
+      part.chapters.forEach(chapter => {
+        const href = `chapter-` + partIdx + `-` + chapter.postId + `.xhtml`;
+        const chHtml = buildChapterXhtml_ep2book(chapter);
+        zip.file(`OEBPS/` + href, chHtml);
+        files.push({
+          id: `ch-` + partIdx + `-` + chapter.postId,
+          href: href,
+          mediaType: `application/xhtml+xml`,
+          title: chapter.title,
+          inSpine: true
+        });
+        const navItem = { href: href, title: chapter.title };
+        if (partNav) partNav.children.push(navItem);
+        else navItems.push(navItem);
+      });
+    });
+
+    zip.file(`OEBPS/nav.xhtml`, buildNavXhtml_ep2book(navItems, structure, coverHtmlHref));
+
+    const ncxItems = coverHtmlHref
+      ? [{ href: coverHtmlHref, title: `Обложка` }].concat(navItems)
+      : navItems;
+    zip.file(`OEBPS/toc.ncx`, buildTocNcx_ep2book(ncxItems, structure));
+
+    zip.file(`OEBPS/content.opf`, buildOpf_ep2book(files, coverHtmlHref, coverImagePath, structure));
+
+    if (typeof onStatus === `function`) onStatus(`Упаковка...`);
+
+    return await zip.generateAsync({
+      type: `blob`,
+      mimeType: `application/epub+zip`,
+      compression: `DEFLATE`
+    });
   }
 
   // ---------- Шаг 1 ----------
@@ -1632,7 +1921,9 @@
       $btn.prop(`disabled`, true);
       setStatus($status, `Сборка EPUB...`, `ok`);
       try {
-        const blob = await buildEpubBlob_ep2book();
+        const blob = await buildEpubBlob_ep2book(function (msg) {
+          setStatus($status, msg, `ok`);
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement(`a`);
         a.href = url;
@@ -1642,7 +1933,13 @@
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 5000);
-        setStatus($status, `Готово. Файл: ` + a.download, `ok`);
+
+        let doneMsg = `Готово. Файл: ` + a.download;
+        const failed = state.book.failedImages || [];
+        if (failed.length) {
+          doneMsg += `. Картинок оставлено ссылкой: ` + failed.length;
+        }
+        setStatus($status, doneMsg, `ok`);
       } catch (err) {
         console.error(`ep2book: ошибка сборки EPUB`, err);
         setStatus($status, `Ошибка сборки: ` + (err && err.message ? err.message : err), `err`);
