@@ -1,4 +1,4 @@
-console.group("4eDo script ep2book v1.6");
+console.group("4eDo script ep2book v1.7");
 console.log("%c~~ Скрипт для сохранения эпизода как книги .epub . %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/ep2book# ");
 console.groupEnd();
@@ -755,13 +755,16 @@ console.groupEnd();
             const computed = window.getComputedStyle($probe[0]);
             const styles = {};
             const props = [
-              `color`, `background-color`, `font-family`, `font-size`, `font-style`,
+              `color`, `background-color`, `background-image`,
+              `font-family`, `font-size`, `font-style`,
               `font-weight`, `text-decoration`, `text-decoration-line`, `text-decoration-style`,
               `text-align`, `line-height`,
               `letter-spacing`, `text-transform`, `text-shadow`,
               `margin-top`, `margin-right`, `margin-bottom`, `margin-left`,
               `padding-top`, `padding-right`, `padding-bottom`, `padding-left`,
               `border-top`, `border-right`, `border-bottom`, `border-left`,
+              `border-bottom-color`, `border-bottom-style`, `border-bottom-width`,
+              `border-top-color`, `border-top-style`, `border-top-width`,
               `display`, `width`, `max-width`, `float`, `vertical-align`
             ];
             props.forEach(prop => {
@@ -1335,13 +1338,12 @@ console.groupEnd();
       `body { font-family: serif; line-height: 1.5; }\n`
     + `h1, h2, h3 { font-weight: bold; }\n`
     + `p { margin: 0 0 0.6em 0; text-indent: 1.2em; }\n`
-    + `p:first-of-type { text-indent: 0; }\n`
     + `img { max-width: 100%; height: auto; }\n`
     + `.ep2book-cover-page { text-align: center; margin: 0; padding: 0; }\n`
     + `.ep2book-cover-page img { max-width: 100%; max-height: 100%; }\n`
     + `nav ol { list-style: none; padding-left: 0; }\n`
     + `nav ol ol { padding-left: 1.2em; }\n`
-    + `.bbuline, em.bbuline, strong.bbuline { text-decoration: underline; }\n`
+    + `.bbuline, em.bbuline, strong.bbuline { font-style: normal; text-decoration: underline; }\n`
     + css);
 
     const imageMap = state.book.imageMap || {};
