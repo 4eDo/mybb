@@ -1,4 +1,4 @@
-console.group("4eDo script ep2book v1.2");
+console.group("4eDo script ep2book v1.5");
 console.log("%c~~ Скрипт для сохранения эпизода как книги .epub . %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/ep2book# ");
 console.groupEnd();
@@ -742,18 +742,22 @@ console.groupEnd();
     state.topicOrder.forEach(tid => {
       (state.posts[tid] || []).forEach(post => {
         const html = post.cleanHtml || ``;
-        const re = /class\s*=\s*["']([^"']+)["']/gi;
+        // Ищем не только class, но и сам тег — чтобы поймать селекторы вида "em.bbuline".
+        const re = /<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*class\s*=\s*["']([^"']+)["'][^>]*>/g;
         let m;
         while ((m = re.exec(html)) !== null) {
-          const classes = m[1].split(/\s+/).filter(Boolean);
+          const tagName = m[1].toLowerCase();
+          const classes = m[2].split(/\s+/).filter(Boolean);
           classes.forEach(cls => {
-            if (classMap[cls]) return;
-            const $probe = $('<div>').addClass(cls).text(`probe`).appendTo($sandbox);
+            const key = tagName + `.` + cls;
+            if (classMap[key]) return;
+            const $probe = $(`<` + tagName + `>`).addClass(cls).text(`probe`).appendTo($sandbox);
             const computed = window.getComputedStyle($probe[0]);
             const styles = {};
             const props = [
               `color`, `background-color`, `font-family`, `font-size`, `font-style`,
-              `font-weight`, `text-decoration`, `text-align`, `line-height`,
+              `font-weight`, `text-decoration`, `text-decoration-line`, `text-decoration-style`,
+              `text-align`, `line-height`,
               `letter-spacing`, `text-transform`, `text-shadow`,
               `margin-top`, `margin-right`, `margin-bottom`, `margin-left`,
               `padding-top`, `padding-right`, `padding-bottom`, `padding-left`,
@@ -768,7 +772,7 @@ console.groupEnd();
                 styles[prop] = val;
               }
             });
-            classMap[cls] = styles;
+            classMap[key] = styles;
             $probe.remove();
           });
         }
@@ -781,10 +785,13 @@ console.groupEnd();
 
   function buildCssFromClassMap_ep2book(classMap) {
     let css = ``;
-    Object.keys(classMap).forEach(cls => {
-      const styles = classMap[cls];
+    Object.keys(classMap).forEach(key => {
+      const styles = classMap[key];
       const rules = Object.keys(styles).map(p => p + `: ` + styles[p] + `;`).join(` `);
-      if (rules) css += `.` + cls + ` { ` + rules + ` }\n`;
+      if (rules) {
+        // key имеет вид "em.bbuline" — используем как селектор напрямую.
+        css += key + ` { ` + rules + ` }\n`;
+      }
     });
     return css;
   }
@@ -801,9 +808,37 @@ console.groupEnd();
 
   function loadJSZip_ep2book() {
     return new Promise((resolve, reject) => {
-      const jz = pickJSZip_ep2book(window.JSZip);
-      if (jz) { resolve(jz); return; }
-      reject(new Error(`JSZip не подключён. Проверьте, что <script src="jszip.min.js"> стоит ПЕРЕД ep2book.js в HTML.`));
+      const existing = pickJSZip_ep2book(window.JSZip);
+      if (existing) { resolve(existing); return; }
+
+      const url = `https://4edo.github.io/mybb/ep2book/jszip.min.js`;
+      fetch(url)
+        .then(r => {
+          if (!r.ok) throw new Error(`Не удалось скачать JSZip: HTTP ` + r.status);
+          return r.text();
+        })
+        .then(code => {
+          const runner = new Function(
+            `define`, `module`, `exports`, `self`, `global`, `window`,
+            `"use strict";\n` + code + `\n;return (typeof JSZip !== "undefined") ? JSZip : null;`
+          );
+          let jz = null;
+          try {
+            jz = runner.call(window, undefined, undefined, undefined, window, window, window);
+          } catch (e) {
+            reject(new Error(`Ошибка выполнения JSZip: ` + (e && e.message ? e.message : e)));
+            return;
+          }
+          const picked = pickJSZip_ep2book(jz) || pickJSZip_ep2book(window.JSZip);
+          if (!picked) {
+            reject(new Error(`JSZip загрузился, но не инициализировался`));
+            return;
+          }
+          resolve(picked);
+        })
+        .catch(err => {
+          reject(new Error(`Не удалось загрузить JSZip: ` + (err && err.message ? err.message : err)));
+        });
     });
   }
 
@@ -832,12 +867,46 @@ console.groupEnd();
     return `</body>\n</html>\n`;
   }
 
-  function makeXhtmlSafe_ep2book(html) {
-    let s = String(html || ``);
-    s = s.replace(/<(br|hr|img|input|meta|link)\b([^>]*?)\s*\/?>/gi, function (_, tag, attrs) {
-      return `<` + tag + attrs.replace(/\s*\/\s*$/, ``) + `/>`;
+  // ---------- Санитайзер XHTML ----------
+
+  function sanitizeXhtmlFragment_ep2book(html) {
+    if (!html) return ``;
+
+    // Парсим как HTML — DOMParser сам починит незакрытые/лишние теги.
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<div>` + String(html) + `</div>`, `text/html`);
+    const root = doc.body.firstChild;
+    if (!root) return ``;
+
+    // Убираем запрещённые в EPUB элементы.
+    const FORBIDDEN_TAGS = [`script`, `style`, `iframe`, `object`, `embed`, `form`, `input`, `button`, `meta`, `link`, `base`];
+    FORBIDDEN_TAGS.forEach(tag => {
+      const els = root.querySelectorAll(tag);
+      Array.from(els).forEach(el => el.parentNode && el.parentNode.removeChild(el));
     });
-    return s;
+
+    // Чистим атрибуты: убираем on*, xml:*, xmlns:*.
+    const all = root.querySelectorAll(`*`);
+    Array.from(all).forEach(el => {
+      Array.from(el.attributes).forEach(attr => {
+        const name = attr.name.toLowerCase();
+        if (name.startsWith(`on`) || name === `xmlns` || name.startsWith(`xmlns:`)) {
+          el.removeAttribute(attr.name);
+        }
+      });
+    });
+
+    // Сериализуем обратно в XML.
+    const serializer = new XMLSerializer();
+    let out = ``;
+    Array.from(root.childNodes).forEach(child => {
+      out += serializer.serializeToString(child);
+    });
+
+    // Убираем xmlns, которые XMLSerializer вешает на каждый тег.
+    out = out.replace(/\s+xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, ``);
+
+    return out;
   }
 
   // ---------- Работа с картинками ----------
@@ -1052,7 +1121,7 @@ console.groupEnd();
     html += `<section epub:type="titlepage">\n`;
     html += `<h1>` + xmlEscape_ep2book(state.book.title || ``) + `</h1>\n`;
     if (bodyHtml) {
-      html += makeXhtmlSafe_ep2book(bodyHtml) + `\n`;
+      html += sanitizeXhtmlFragment_ep2book(bodyHtml) + `\n`;
     }
     html += `</section>\n`;
     html += xhtmlFooter_ep2book();
@@ -1076,7 +1145,7 @@ console.groupEnd();
     html += `<h1>` + xmlEscape_ep2book(title) + `</h1>\n`;
     const firstPost = (state.posts[part.tid] || [])[0];
     if (firstPost && firstPost.cleanHtml) {
-      html += makeXhtmlSafe_ep2book(rewriteImageSrcs_ep2book(firstPost.cleanHtml)) + `\n`;
+      html += sanitizeXhtmlFragment_ep2book(rewriteImageSrcs_ep2book(firstPost.cleanHtml)) + `\n`;
     }
     html += `</section>\n`;
     html += xhtmlFooter_ep2book();
@@ -1088,7 +1157,7 @@ console.groupEnd();
     let html = xhtmlHeader_ep2book(chapter.title);
     html += `<section epub:type="chapter">\n`;
     html += `<h2>` + xmlEscape_ep2book(chapter.title) + `</h2>\n`;
-    html += makeXhtmlSafe_ep2book(bodyHtml) + `\n`;
+    html += sanitizeXhtmlFragment_ep2book(bodyHtml) + `\n`;
     html += `</section>\n`;
     html += xhtmlFooter_ep2book();
     return html;
@@ -1272,6 +1341,7 @@ console.groupEnd();
     + `.ep2book-cover-page img { max-width: 100%; max-height: 100%; }\n`
     + `nav ol { list-style: none; padding-left: 0; }\n`
     + `nav ol ol { padding-left: 1.2em; }\n`
+    + `.bbuline, em.bbuline, strong.bbuline { text-decoration: underline; }\n`
     + css);
 
     const imageMap = state.book.imageMap || {};
