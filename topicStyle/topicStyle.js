@@ -18,4 +18,4 @@ jQuery(document).on('custom_tag', function(e) {
     const style = document.createElement('style');
     style.textContent = safeCss;
     $el.appendChild(style);
-}
+});
