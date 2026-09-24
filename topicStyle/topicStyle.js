@@ -5,17 +5,18 @@ console.groupEnd();
 
 jQuery(document).on('custom_tag', function(e) {
     if (e.tag !== 'topicStyle') return;
-    $el = e.sender;
-  
+    const $el = e.sender;
+
     const raw = $el.text().trim();
     if (!raw) return;
 
     const safeCss = raw
-        .replace(/<\/style/gi, '')      // нельзя закрыть тег
-        .replace(/<!--|-->/g, '')       // нельзя открыть/закрыть HTML-комментарий
-        .replace(/@import[^;]*;?/gi, ''); // нельзя @import
+        .replace(/<\/style/gi, '')
+        .replace(/<!--|-->/g, '')
+        .replace(/@import[^;]*;?/gi, '');
 
     const style = document.createElement('style');
     style.textContent = safeCss;
-    $el.appendChild(style);
+
+    $el.replaceWith(style);
 });
