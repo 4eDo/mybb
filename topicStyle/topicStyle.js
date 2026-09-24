@@ -16,9 +16,8 @@ jQuery(document).on('custom_tag', function(e) {
         .replace(/@import[^;]*;?/gi, '');
 
     const sheet = new CSSStyleSheet();
-const sheet = new CSSStyleSheet();
-sheet.replaceSync(safeCss);
-document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+    sheet.replaceSync(safeCss);
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
 
     $el.remove();
 });
