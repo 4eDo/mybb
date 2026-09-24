@@ -1,4 +1,4 @@
-console.group("4eDo script topic style v1.2");
+console.group("4eDo script topic style v1.3");
 console.log("%c~~ Скрипт для загрузки стиля в тему. %c https://github.com/4eDo ~~", "font-weight: bold;", "font-weight: bold;");
 console.log("More info: https://github.com/4eDo/mybb/tree/main/topicStyle# ");
 console.groupEnd();
@@ -16,7 +16,8 @@ jQuery(document).on('custom_tag', function(e) {
         .replace(/@import[^;]*;?/gi, '');
 
     const sheet = new CSSStyleSheet();
-sheet.insertRule(safeCss, 0);
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(safeCss);
 document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
 
     $el.remove();
