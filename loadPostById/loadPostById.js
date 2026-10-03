@@ -34,7 +34,7 @@ async function lpbi(MSG_ID, targetId) {
             data = JSON.parse(text);
         } catch (e) {
             console.error("[loadPostById] не удалось распарсить JSON:", e);
-            result.textContent = "Ошибка: ответ не JSON";
+            renderError_lpbi(result, MSG_ID, "ответ не JSON");
             return;
         }
 
@@ -46,13 +46,40 @@ async function lpbi(MSG_ID, targetId) {
         let html = txt.value;
 
         // 2) Меняем [html]...[/html] и [indent].
-        html = replaceCustomTags(html, targetId+"inner");
+        html = replaceCustomTags_lpbi(html, targetId+"inner");
 
         result.innerHTML = html;
     } catch (err) {
         console.error("[loadPostById] FETCH УПАЛ:", err);
-        result.textContent = "Ошибка загрузки: " + err.message;
+        renderError(result, MSG_ID, err.message);
     }
+}
+
+/**
+ * Рендерит сообщение об ошибке со ссылкой на пост.
+ * @param {HTMLElement} container
+ * @param {string|number} MSG_ID
+ * @param {string} [reason]
+ */
+function renderError_lpbi(container, MSG_ID, reason) {
+    const href = `/viewtopic.php?pid=${MSG_ID}#p${MSG_ID}`;
+    const reasonHtml = reason
+        ? ' <span style="opacity:.7">(' + escapeHtml(reason) + ')</span>'
+        : '';
+
+    container.innerHTML =
+        'Не удалось встроить фрагмент. Вы можете посмотреть его ' +
+        '<a href="' + href + '" target="_blank">ЗДЕСЬ</a>.' +
+        reasonHtml;
+}
+
+function escapeHtml_lpbi(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 /**
@@ -60,9 +87,9 @@ async function lpbi(MSG_ID, targetId) {
  * @param {string} html     — исходный HTML
  * @param {string} scopeId  — id контейнера, к которому скоупим стили
  */
-function replaceCustomTags(html, scopeId) {
+function replaceCustomTags_lpbi(html, scopeId) {
     html = html.replace(/\[html\]([\s\S]*?)\[\/html\]/g, function (_, inner) {
-        const scoped = scopeStyles(inner, scopeId);
+        const scoped = scopeStyles_lpbi(inner, scopeId);
 
         return '<div class="html-post-box" style="padding-bottom:1em">' +
             '<div class="html-inner">' +
@@ -82,21 +109,21 @@ function replaceCustomTags(html, scopeId) {
 /**
  * Подготовка <style>...</style> для [html].
  */
-function scopeStyles(html, uuid) {
+function scopeStyles_lpbi(html, uuid) {
     return html.replace(/<style([^>]*)>([\s\S]*?)<\/style>/gi, function (_, attrs, css) {
         css = css.replace(/<br\s*\/?>/gi, '\n');
-        const scopedCss = scopeCss(css, uuid);
+        const scopedCss = scopeCss_lpbi(css, uuid);
         return '<style' + attrs + '>\n' + scopedCss + '\n</style>';
     });
 }
 
-function scopeCss(css, uuid) {
+function scopeCss_lpbi(css, uuid) {
     const prefix = '#' + uuid;
     css = css.replace(/\/\*[\s\S]*?\*\//g, '');
-    return parseBlocks(css, prefix).join('\n');
+    return parseBlocks_lpbi(css, prefix).join('\n');
 }
 
-function parseBlocks(css, prefix) {
+function parseBlocks_lpbi(css, prefix) {
     const out = [];
     let i = 0;
 
